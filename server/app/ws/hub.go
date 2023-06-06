@@ -5,8 +5,6 @@ import (
 	"time"
 )
 
-// import "fmt"
-
 type Hub struct {
 	Broadcast  chan *Post
 	Register   chan *Participant

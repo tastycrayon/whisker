@@ -12,37 +12,6 @@ import (
 	"nhooyr.io/websocket"
 )
 
-// import (
-// 	"fmt"
-
-// 	"github.com/gofiber/fiber/v2"
-// 	"github.com/gofiber/websocket/v2"
-// 	"github.com/nekonako/moechat/app/user/events/ws"
-// )
-
-// func JoinRoom(c echo.Context) error {
-// 	r, w := c.Request(), c.Response().Writer
-// 	wbsock, err := websocket.Accept(w, r, nil)
-// 	if err != nil {
-// 		return apis.NewApiError(http.StatusInternalServerError, "could not accept websocket connection", nil)
-// 	}
-// 	defer wbsock.Close(websocket.StatusInternalError, "the sky is falling")
-
-// 	ctx, cancel := context.WithTimeout(r.Context(), time.Second*10)
-// 	defer cancel()
-
-// 	var v ws.Message
-
-// 	err = wsjson.Read(ctx, wbsock, &v)
-// 	if err != nil {
-// 		return apis.NewApiError(http.StatusBadRequest, "failed receiving body", nil)
-// 	}
-
-//		log.Printf("received: %v", v)
-//		wbsock.Close(websocket.StatusNormalClosure, "")
-//		return nil
-//	}
-
 func JoinRoom(h *ws.Hub) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		opts := &websocket.AcceptOptions{
