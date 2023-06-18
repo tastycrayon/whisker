@@ -4,17 +4,17 @@ const forms = require('@tailwindcss/forms');
 
 /** @type {import('tailwindcss').Config}*/
 const config = {
-    darkMode: 'class',
-    content: ['./src/**/*.{html,js,svelte,ts}', require('path').join(require.resolve(
-        '@skeletonlabs/skeleton'),
-        '../**/*.{html,js,svelte,ts}'
-    )],
+	darkMode: 'class',
+	content: [
+		'./src/**/*.{html,js,svelte,ts}',
+		require('path').join(require.resolve('@skeletonlabs/skeleton'), '../**/*.{html,js,svelte,ts}')
+	],
 
-    theme: {
-        extend: {}
-    },
+	theme: {
+		extend: {}
+	},
 
-    plugins: [forms, typography, ...require('@skeletonlabs/skeleton/tailwind/skeleton.cjs')()]
+	plugins: [forms, typography, ...require('@skeletonlabs/skeleton/tailwind/skeleton.cjs')()]
 };
 
 module.exports = config;

@@ -3,91 +3,114 @@ package ws
 import (
 	"fmt"
 	"time"
+
+	"github.com/bwmarrin/snowflake"
+	"golang.org/x/time/rate"
 )
 
 type Hub struct {
-	Broadcast  chan *Post
+	Broadcast  chan *MessageFeed
 	Register   chan *Participant
 	Unregister chan *Participant
 	Rooms      map[string]*Room
+	Node       *snowflake.Node
+	// SubscriberMessageBuffer controls the max number
+	// of messages that can be queued for a subscriber
+	// before it is kicked.
+	//
+	// Defaults to 16.
+	SubscriberMessageBuffer int
+	// publishLimiter controls the rate limit applied to the publish endpoint.
+	//
+	// Defaults to one publish every 100ms with a burst of 8.
+	PublishLimiter *rate.Limiter
 }
 
 func (h *Hub) Run() {
 	for {
 		select {
 		case participant := <-h.Register:
-			fmt.Println("Register client")
-			if _, isRoomExist := h.Rooms[participant.RoomId]; !isRoomExist {
-				h.Rooms[participant.RoomId] = &Room{
-					RoomId:  participant.RoomId,
-					Clients: make(map[string]*Participant),
+			fmt.Println("Register participant")
+			if room, doesRoomExist := h.Rooms[participant.RoomSlug]; doesRoomExist {
+				if _, doesParticipantExist := room.Participants[participant.Id]; !doesParticipantExist {
+					room.ParticipantMu.Lock()
+					room.Participants[participant.Id] = participant
+					room.ParticipantMu.Unlock()
+					go func() {
+						// fetch exisiting messages and post
+						mList := GenerateCustomMessage(
+							*participant,
+							GenerateId(h),
+							History,
+							room.LocalMessageQueue.GetInternalSlice(),
+						)
+						participant.WriteCustomMessage(mList)
+						// fetching participant list
+						pList := GenerateCustomMessage(
+							*participant,
+							GenerateId(h),
+							Ping,
+							GetAllParticipants(h),
+						)
+						participant.WriteCustomMessage(pList)
+						h.Broadcast <- GenerateUserJoinedMessage(*participant, GenerateId(h))
+						// be ready to write new messages
+						// participant.WriteMessage()
+					}()
 				}
 			}
-			room := h.Rooms[participant.RoomId]
-			if _, doesParticipantExist := room.Clients[participant.ClientId]; !doesParticipantExist {
-				room.Clients[participant.ClientId] = participant
-			}
-
 		case participant := <-h.Unregister:
-			if room, doesRoomExist := h.Rooms[participant.RoomId]; doesRoomExist {
-				if _, isCLientExist := room.Clients[participant.ClientId]; isCLientExist {
+			if room, doesRoomExist := h.Rooms[participant.RoomSlug]; doesRoomExist {
+				if _, doesParticipant := room.Participants[participant.Id]; doesParticipant {
 					fmt.Println("delete connection")
-					if len(room.Clients) != 0 {
-						post := &Post{
-							RoomId: participant.RoomId,
-							Message: Message{
-								Id:      GenerateId(),
-								Content: "An user has left the room.",
-								Type:    Bailout,
-							},
-							Sender: MessageSender{
-								ClientId: participant.ClientId,
-								Username: participant.Username,
-								RoomId:   participant.RoomId,
-								Avatar:   participant.Avatar,
-							},
-							Created: time.Now(),
-						}
-						h.Broadcast <- post
-						// h.Broadcast <- &Message{
-						// 	Message:  "disconnect_user",
-						// 	ClientId: client.ClientId,
-						// 	RoomId:   client.RoomId,
-						// 	Username: client.Username,
-						// }
-					}
-					delete(h.Rooms[participant.RoomId].Clients, participant.ClientId)
-					close(participant.Message) // stop receiving messages
+					post := GenerateUserLeftMessage(*participant, GenerateId(h))
+					h.Broadcast <- post
+					// delete participant
+					room.ParticipantMu.Lock()
+					delete(h.Rooms[participant.RoomSlug].Participants, participant.Id)
+					room.ParticipantMu.Unlock()
 				}
-
-				// remove room if no one clinet
-				clients := h.Rooms[participant.RoomId].Clients
-				if len(clients) == 0 {
-					delete(h.Rooms, participant.RoomId)
+				// delete room if no one left
+				if room.Type != PublicRoom { // must not be a public room
+					time.AfterFunc(1*time.Hour, func() {
+						if room, doesRoomExist := h.Rooms[participant.RoomSlug]; doesRoomExist {
+							if len(room.Participants) == 0 {
+								room.ParticipantMu.Lock()
+								delete(h.Rooms, participant.RoomSlug)
+								room.ParticipantMu.Lock()
+							}
+						}
+					})
 				}
 			}
 
 		case message := <-h.Broadcast:
-			if room, exist := h.Rooms[message.RoomId]; exist { // find the room
-				for _, client := range room.Clients { // find all the paerticipants
-					if client.RoomId == message.RoomId {
-						client.Message <- message // send them messages
-					}
+			if room, exist := h.Rooms[message.RoomSlug]; exist { // find the room
+				room.ParticipantMu.Lock()
+				for _, participant := range room.Participants { // find all the paerticipants
+					participant.Message <- message // send them messages
 				}
-				if room.PostsQueue.IsFull() {
-					room.PostsQueue.Dequeue()
+				room.ParticipantMu.Unlock()
+				if room.LocalMessageQueue.IsFull() {
+					room.LocalMessageQueue.Dequeue()
 				}
-				room.PostsQueue.Enqueue(message)
+				room.LocalMessageQueue.Enqueue(message)
 			}
 		}
 	}
 }
 
 func NewHub() *Hub {
+	node, err := snowflake.NewNode(1)
+	if err != nil {
+		panic(err)
+	}
 	return &Hub{
-		Broadcast:  make(chan *Post, 5),
-		Register:   make(chan *Participant),
-		Unregister: make(chan *Participant),
-		Rooms:      make(map[string]*Room),
+		Broadcast:      make(chan *MessageFeed, 5),
+		Register:       make(chan *Participant),
+		Unregister:     make(chan *Participant),
+		Rooms:          make(map[string]*Room),
+		Node:           node,
+		PublishLimiter: rate.NewLimiter(rate.Every(time.Millisecond*100), 8),
 	}
 }

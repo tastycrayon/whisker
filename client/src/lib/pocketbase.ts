@@ -8,7 +8,7 @@ export const pb = new PocketBase(PUBLIC_POCKETBASE_URL);
 export const currentUser = writable(pb.authStore.model);
 
 // callback is executed after successfull authentication
-export const initGoogleAuth = async (callback = () => {}) => {
+export const initGoogleAuth = async (callback = () => { }) => {
 	// This method initializes a one-off realtime subscription and will
 	// open a popup window with the OAuth2 vendor page to authenticate.
 	//
@@ -24,11 +24,11 @@ export const initGoogleAuth = async (callback = () => {}) => {
 			callback();
 		}
 		// console.log({ a: pb.authStore.isValid, b: pb.authStore.token, c: pb?.authStore?.model?.id });
-	} catch (_) {}
+	} catch (_) { }
 };
 
 // callback is executed after successfull authentication
-export const initFacebookAuth = async (callback = () => {}) => {
+export const initFacebookAuth = async (callback = () => { }) => {
 	try {
 		const authData = await pb.collection('users').authWithOAuth2({ provider: 'facebook' });
 		currentUser.set(pb.authStore.model);
@@ -38,5 +38,5 @@ export const initFacebookAuth = async (callback = () => {}) => {
 			callback();
 		}
 		// console.log({ a: pb.authStore.isValid, b: pb.authStore.token, c: pb?.authStore?.model?.id });
-	} catch (_) {}
+	} catch (_) { }
 };

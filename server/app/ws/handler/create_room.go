@@ -16,7 +16,6 @@ type CreateRoomReq struct {
 
 func CreateRoom(h *ws.Hub) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		// get user
 		authRecord, _ := c.Get(apis.ContextAuthRecordKey).(*models.Record)
 
 		room := new(CreateRoomReq)
@@ -24,13 +23,7 @@ func CreateRoom(h *ws.Hub) echo.HandlerFunc {
 		if err := c.Bind(room); err != nil {
 			panic(err)
 		}
-
-		h.Rooms[room.RoomId] = &ws.Room{
-			RoomId:    room.RoomId,
-			RoomName:  room.RoomName,
-			Clients:   make(map[string]*ws.Participant),
-			CreatedBy: authRecord.Id,
-		}
+		h.Rooms[room.RoomId] = ws.NewRoom(room.RoomId, room.RoomName, authRecord.Id, ws.PersonalRoom)
 
 		return c.JSON(http.StatusOK, room)
 	}

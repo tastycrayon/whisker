@@ -5,3 +5,4 @@ export const REGISTER_PATH = '/register';
 export const LOGOUT_PATH = '/logout';
 
 export const ROOM_PATH = '/rooms';
+export const PARTICIPANT_PATH = '/participants';

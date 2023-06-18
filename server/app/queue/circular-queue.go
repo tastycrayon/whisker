@@ -58,16 +58,29 @@ func (q *CQueue[V]) Dequeue() *V {
 	q.iterator = q.head // for iteration with Next()
 	return item
 }
+func (q *CQueue[V]) ResetIterator() {
+	q.iterator = q.head // reset the iterator
+}
 
 // Next increments the iterator
 func (q *CQueue[V]) Next() (value *V, ok bool) {
-	defer func() {
-		q.iterator = q.head // reset the iterator
-	}()
 	if q.iterator == q.tail {
 		return nil, false
 	}
 	value = q.data[q.iterator]
 	q.iterator = (q.iterator + 1) % q.capacity
 	return value, true
+}
+
+func (q *CQueue[V]) GetInternalSlice() []*V {
+	q.ResetIterator()
+	var s []*V = make([]*V, 0, q.capacity)
+	for {
+		m, ok := q.Next()
+		if !ok {
+			break
+		}
+		s = append(s, m)
+	}
+	return s
 }

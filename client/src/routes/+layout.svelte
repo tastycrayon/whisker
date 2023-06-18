@@ -9,13 +9,15 @@
 	// Finally, your application's global stylesheet (sometimes labeled 'app.css')
 	import '../app.postcss';
 	// <!-- css setting end -->
-	import { AppShell, Modal } from '@skeletonlabs/skeleton';
+	import '../style/style.css';
+	import { AppShell, Modal, Toast } from '@skeletonlabs/skeleton';
 
 	// import Navbar from '../components/navbar.svelte';
 	// import type { LayoutData } from './$types';
 	// import Footer from '../components/footer.svelte';
 </script>
 
+<Toast />
 <Modal />
 <AppShell>
 	<svelte:fragment slot="header">

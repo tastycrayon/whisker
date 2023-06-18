@@ -17,7 +17,6 @@
 				.collection('users')
 				.authWithPassword(emailOrUsername, password);
 			pb.authStore.exportToCookie(COOKIE_OPTIONS);
-			console.log({ token, record });
 		} catch (err) {
 			console.log('Error: ', err);
 		}

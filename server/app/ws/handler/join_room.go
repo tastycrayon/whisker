@@ -3,7 +3,6 @@ package handler
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/labstack/echo/v5"
 	"github.com/pocketbase/pocketbase/apis"
@@ -14,63 +13,40 @@ import (
 
 func JoinRoom(h *ws.Hub) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		roomSlug := c.PathParam("roomSlug")
+		_, found := h.Rooms[roomSlug]
+		if !found {
+			return apis.NewApiError(http.StatusInternalServerError, "room not found", nil)
+		}
 		opts := &websocket.AcceptOptions{
 			OriginPatterns: []string{"localhost:5173"},
 		}
 		// get user
 		authRecord, _ := c.Get(apis.ContextAuthRecordKey).(*models.Record)
-		fmt.Println("knocked", authRecord.Id)
-		fmt.Println("knocked", authRecord.Get("avatar"))
 		r, w := c.Request(), c.Response()
 		wbsock, err := websocket.Accept(w, r, opts)
 		if err != nil {
 			fmt.Println(err)
 			return apis.NewApiError(http.StatusInternalServerError, "could not accept websocket connection", nil)
 		}
-
-		roomId := c.PathParam("roomId")
-		// clientId := c.QueryParam("userId")
-		// username := c.QueryParam("username")
 		avatar := authRecord.Get("avatar").(string)
-		clientId := authRecord.Id
+		participantId := authRecord.Id
 		username := authRecord.Username()
 
-		client := &ws.Participant{
-			ClientId: clientId,
+		participant := &ws.Participant{
+			Id:       participantId,
 			Username: username,
 			Avatar:   avatar,
-			RoomId:   roomId,
+			RoomSlug: roomSlug,
 			Conn:     wbsock,
-			Message:  make(chan *ws.Post, 10),
-		}
-		fmt.Println("client", client)
-		// m := ws.Message{
-		// 	Message:  "A new user has joined the room.",
-		// 	ClientId: client.ClientId,
-		// 	RoomId:   client.RoomId,
-		// 	Username: username,
-		// }
-		m := ws.Post{
-			RoomId: client.RoomId,
-			Message: ws.Message{
-				Id:      "not_avaliable_yet",
-				Content: "A new user has joined the room.",
-				Type:    ws.Welcome,
+			Message:  make(chan *ws.MessageFeed, h.SubscriberMessageBuffer),
+			CloseSlow: func() {
+				wbsock.Close(websocket.StatusPolicyViolation, "connection too slow to keep up with messages")
 			},
-			Sender: ws.MessageSender{
-				ClientId: clientId,
-				Username: username,
-				RoomId:   client.RoomId,
-				Avatar:   avatar,
-			},
-			Created: time.Now(),
 		}
-		fmt.Println("mess", m)
-		h.Register <- client
-		h.Broadcast <- &m
-
-		go client.WriteMessage()
-		client.ReadMessage(h, r)
+		h.Register <- participant
+		go participant.WriteMessage(r.Context())
+		participant.ReadMessage(h, r) // subscriber
 
 		return nil
 	}

@@ -19,19 +19,19 @@ func LoadCookieTokenToHeader(app core.App) echo.MiddlewareFunc {
 		return func(c echo.Context) error {
 			cookie, err := c.Cookie("pb_auth")
 			if err != nil {
-				next(c)
+				return next(c)
 			}
 
 			decodedValue, err := url.QueryUnescape(cookie.Value)
 			if err != nil {
-				next(c)
+				return next(c)
 			}
 			var t struct {
 				Token string `json:"token"`
 			}
 			err = json.Unmarshal([]byte(decodedValue), &t)
 			if err != nil {
-				next(c)
+				return next(c)
 			}
 
 			c.Request().Header.Set("Authorization", t.Token)
@@ -60,11 +60,16 @@ func InitRoutes(pb *pocketbase.PocketBase, e *core.ServeEvent, hub *ws.Hub) {
 	group.Use(apis.ActivityLogger(pb))  // print logs
 
 	group.POST("", handler.CreateRoom(hub))
-	e.Router.GET("/rooms/:roomId",
+	e.Router.GET("/rooms/:roomSlug",
 		handler.JoinRoom(hub),
 		LoadCookieTokenToHeader(pb),
-		apis.LoadAuthContext(pb), CustomAuthMiddleware(pb))
+		apis.LoadAuthContext(pb), CustomAuthMiddleware(pb),
+	)
 	group.GET("", handler.GetAvailableRooms(hub))
 
-	group.GET("/clients/:roomId", handler.GetClientByRoom(hub))
+	e.Router.GET("/participants/:roomSlug",
+		handler.GetParticipantByRoom(hub),
+		CustomAuthMiddleware(pb),
+		apis.ActivityLogger(pb),
+	)
 }

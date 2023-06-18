@@ -1,64 +1,93 @@
 package ws
 
 import (
-	"crypto/rand"
 	"fmt"
-	"strings"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/bwmarrin/snowflake"
 )
 
-//	type Message struct {
-//		Message  string `json:"message"`
-//		ClientId string `json:"clientId"`
-//		RoomId   string `json:"roomId"`
-//		Username string `json:"username"`
-//	}
-type MessageType string
+type MessageType uint8
 
 const (
-	Welcome MessageType = "welcome"
-	Ping    MessageType = "ping"
-	Text    MessageType = "text"
-	Bailout MessageType = "bailout"
+	Welcome MessageType = 2
+	Ping    MessageType = 4 // slice
+	Text    MessageType = 8
+	Bailout MessageType = 16
+	Swap    MessageType = 32
+	History MessageType = 64 // slice
 )
 
 type MessageReq struct {
 	Content string      `json:"content"`
 	Type    MessageType `json:"messageType"`
-}
-
-type Message struct {
-	Id      string      `json:"id"`
-	Content string      `json:"content"`
-	Type    MessageType `json:"messageType"`
+	From    string      `json:"from"`
+	To      string      `json:"to"`
 }
 
 type MessageSender struct {
-	ClientId string `json:"clientId"`
-	Username string `json:"username"`
-	RoomId   string `json:"roomId"`
+	Id       string `json:"id"`
+	Username string `json:"userName"`
+	RoomSlug string `json:"roomSlug"`
 	Avatar   string `json:"avatar"`
 }
 
-type Post struct {
-	Message Message `json:"message"`
-	Sender  MessageSender
-	RoomId  string    `json:"roomId"`
-	Created time.Time `json:"created"`
+type MessageFeed struct {
+	SID      snowflake.ID  `json:"sid"`
+	Content  interface{}   `json:"content"`
+	Type     MessageType   `json:"messageType"`
+	Sender   MessageSender `json:"sender"`
+	RoomSlug string        `json:"roomSlug"`
+	Created  time.Time     `json:"created"`
 }
 
-func GenerateId() string {
-	str := uuid.NewString()
-	str = strings.ReplaceAll(str, "-", "")
+func GenerateId(h *Hub) snowflake.ID {
+	return h.Node.Generate()
+}
 
-	c := 10
-	b := make([]byte, c)
-	_, err := rand.Read(b)
-	if err != nil {
-		fmt.Println("error:", err)
+func GenerateUserLeftMessage(p Participant, id snowflake.ID) *MessageFeed {
+	return &MessageFeed{
+		SID:      id,
+		RoomSlug: p.RoomSlug,
+		Type:     Bailout,
+		Content:  fmt.Sprintf("%v has left the room.", p.Username),
+		Sender: MessageSender{
+			Id:       p.Id,
+			Username: p.Username,
+			RoomSlug: p.RoomSlug,
+			Avatar:   p.Avatar,
+		},
+		Created: time.Now(),
 	}
-	// The slice should now contain random bytes instead of only zeroes.
-	return str[:15]
+}
+func GenerateUserJoinedMessage(p Participant, id snowflake.ID) *MessageFeed {
+	return &MessageFeed{
+		SID:      id,
+		RoomSlug: p.RoomSlug,
+		Content:  fmt.Sprintf("%v has joined the room.", p.Username),
+		Type:     Welcome,
+		Sender: MessageSender{
+			Id:       p.Id,
+			Username: p.Username,
+			RoomSlug: p.RoomSlug,
+			Avatar:   p.Avatar,
+		},
+		Created: time.Now(),
+	}
+}
+
+func GenerateCustomMessage(p Participant, id snowflake.ID, t MessageType, content interface{}) *MessageFeed {
+	return &MessageFeed{
+		SID:      id,
+		RoomSlug: p.RoomSlug,
+		Content:  content,
+		Type:     t,
+		Sender: MessageSender{
+			Id:       p.Id,
+			Username: p.Username,
+			RoomSlug: p.RoomSlug,
+			Avatar:   p.Avatar,
+		},
+		Created: time.Now(),
+	}
 }

@@ -11,15 +11,14 @@ import (
 	"nhooyr.io/websocket/wsjson"
 )
 
-// 	"github.com/gofiber/websocket/v2"
-
 type Participant struct {
-	Conn     *websocket.Conn
-	ClientId string `json:"clientId"`
-	Username string `json:"username"`
-	RoomId   string `json:"roomId"`
-	Avatar   string `json:"avatar"`
-	Message  chan *Post
+	Conn      *websocket.Conn   `json:"-"`
+	Id        string            `json:"id"`
+	Username  string            `json:"username"`
+	RoomSlug  string            `json:"roomSlug"`
+	Avatar    string            `json:"avatar"`
+	Message   chan *MessageFeed `json:"-"`
+	CloseSlow func()
 }
 
 // const (
@@ -37,46 +36,51 @@ type Participant struct {
 // )
 
 // from webscoket Connections to Hub
-func (c *Participant) ReadMessage(h *Hub, r *http.Request) {
+func (p *Participant) ReadMessage(h *Hub, r *http.Request) {
 	defer func() {
-		// send client to unregister and disconnect him
-		h.Unregister <- c
-		c.Conn.Close(websocket.StatusNormalClosure, "")
+		// send participant to unregister and disconnect him | will run on error(such as disconnect)
+		h.Unregister <- p // when participant is not receiving messages
+		close(p.Message)  // chan - stop receiving messages
+		p.Conn.Close(websocket.StatusNormalClosure, "either participant disconnected or message read failed")
 
 	}()
 
 	for {
-		// _, m, err := c.Conn.ReadMessage() // from user get new msg
 		var m MessageReq
-		// ctx, cancel := context.WithTimeout(r.Context(), time.Second*10)
-		// defer cancel() // read message for 10 second
-		if err := wsjson.Read(context.Background(), c.Conn, &m); err != nil {
-			fmt.Println("failed at reader", err)
+		// ctx, cancel := context.WithTimeout(r.Context(), time.Minute*10)
+		// defer cancel() // read messages for 10 minute
+		// ctx := context.Background()
+		ctx := r.Context()
+		if err := wsjson.Read(ctx, p.Conn, &m); err != nil {
+			fmt.Println("failed at message reader", err)
 			if strings.Contains(err.Error(), "websocket: close") {
-				fmt.Println("close Connection")
+				fmt.Println("closing connection for websocket")
 			}
 			break
 		}
+		// intercept messaage
+		if m.Type == Swap {
+			if _, ok := h.Rooms[m.From]; ok && m.From != p.RoomSlug {
+				fmt.Println("swap parse error")
+				continue
+			}
+			h.Unregister <- p // unregister from existing
+			p.RoomSlug = m.To // change room id
+			h.Register <- p   // re-register to new room
+			continue
+		}
+		// intercept messaage
 
-		fmt.Println("message from client (first message)", m)
-		// mesaage := Message{
-		// 	Message:  string(v.Message),
-		// 	ClientId: c.ClientId,
-		// 	RoomId:   c.RoomId,
-		// 	Username: c.Username,
-		// }
-		post := &Post{
-			RoomId: c.RoomId,
-			Message: Message{
-				Id:      GenerateId(),
-				Content: "An user has left the room.",
-				Type:    Bailout,
-			},
+		post := &MessageFeed{
+			SID:      GenerateId(h),
+			RoomSlug: p.RoomSlug,
+			Content:  m.Content,
+			Type:     m.Type,
 			Sender: MessageSender{
-				ClientId: c.ClientId,
-				Username: c.Username,
-				RoomId:   c.RoomId,
-				Avatar:   c.Avatar,
+				Id:       p.Id,
+				Username: p.Username,
+				RoomSlug: p.RoomSlug,
+				Avatar:   p.Avatar,
 			},
 			Created: time.Now(),
 		}
@@ -85,18 +89,42 @@ func (c *Participant) ReadMessage(h *Hub, r *http.Request) {
 }
 
 // from Hub to websocket Connection
-func (c *Participant) WriteMessage() {
+func (c *Participant) WriteMessage(ctx context.Context) error {
 	defer func() {
 		fmt.Println("Connection was closed")
 	}()
 	for {
-		message, ok := <-c.Message
-		if !ok { // close(c.Message) will happen when client unsubscribes
-			return
+		select {
+		case message := <-c.Message:
+			err := writeTimeout(ctx, time.Second*5, c.Conn, message)
+			if err != nil {
+				return err
+			}
+		case <-ctx.Done():
+			return ctx.Err()
 		}
-		// c.Conn.WriteJSON(message)
-		// ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-		// defer cancel()
-		wsjson.Write(context.Background(), c.Conn, message)
 	}
+}
+
+func (c *Participant) WriteCustomMessage(m interface{}) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	wsjson.Write(ctx, c.Conn, m)
+}
+
+func GetAllParticipants(h *Hub) []*Participant {
+	participants := make([]*Participant, 0)
+	for _, room := range h.Rooms {
+		for _, p := range room.Participants {
+			participants = append(participants, p)
+		}
+	}
+	return participants
+}
+
+func writeTimeout(ctx context.Context, timeout time.Duration, c *websocket.Conn, msg interface{}) error {
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	return wsjson.Write(ctx, c, msg)
 }
