@@ -54,8 +54,6 @@ func (h *Hub) Run() {
 						)
 						participant.WriteCustomMessage(pList)
 						h.Broadcast <- GenerateUserJoinedMessage(*participant, GenerateId(h))
-						// be ready to write new messages
-						// participant.WriteMessage()
 					}()
 				}
 			}
@@ -77,7 +75,7 @@ func (h *Hub) Run() {
 							if len(room.Participants) == 0 {
 								room.ParticipantMu.Lock()
 								delete(h.Rooms, participant.RoomSlug)
-								room.ParticipantMu.Lock()
+								room.ParticipantMu.Unlock()
 							}
 						}
 					})
@@ -106,11 +104,12 @@ func NewHub() *Hub {
 		panic(err)
 	}
 	return &Hub{
-		Broadcast:      make(chan *MessageFeed, 5),
-		Register:       make(chan *Participant),
-		Unregister:     make(chan *Participant),
-		Rooms:          make(map[string]*Room),
-		Node:           node,
-		PublishLimiter: rate.NewLimiter(rate.Every(time.Millisecond*100), 8),
+		Broadcast:               make(chan *MessageFeed, 5),
+		Register:                make(chan *Participant),
+		Unregister:              make(chan *Participant),
+		Rooms:                   make(map[string]*Room),
+		Node:                    node,
+		SubscriberMessageBuffer: 16,
+		PublishLimiter:          rate.NewLimiter(rate.Every(time.Millisecond*100), 8),
 	}
 }

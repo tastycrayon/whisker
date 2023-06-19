@@ -3,7 +3,6 @@ package ws
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 
@@ -18,25 +17,11 @@ type Participant struct {
 	RoomSlug  string            `json:"roomSlug"`
 	Avatar    string            `json:"avatar"`
 	Message   chan *MessageFeed `json:"-"`
-	CloseSlow func()
+	CloseSlow func()            `json:"-"`
 }
 
-// const (
-// 	// Time allowed to write a message to the peer.
-// 	writeWait = 10 * time.Second
-
-// 	// Time allowed to read the next pong message from the peer.
-// 	pongWait = 60 * time.Second
-
-// 	// Send pings to peer with this period. Must be less than pongWait.
-// 	pingPeriod = (pongWait * 9) / 10
-
-// 	// Maximum message size allowed from peer.
-// 	maxMessageSize = 512
-// )
-
 // from webscoket Connections to Hub
-func (p *Participant) ReadMessage(h *Hub, r *http.Request) {
+func (p *Participant) ReadMessage(h *Hub, ctx context.Context) {
 	defer func() {
 		// send participant to unregister and disconnect him | will run on error(such as disconnect)
 		h.Unregister <- p // when participant is not receiving messages
@@ -47,10 +32,6 @@ func (p *Participant) ReadMessage(h *Hub, r *http.Request) {
 
 	for {
 		var m MessageReq
-		// ctx, cancel := context.WithTimeout(r.Context(), time.Minute*10)
-		// defer cancel() // read messages for 10 minute
-		// ctx := context.Background()
-		ctx := r.Context()
 		if err := wsjson.Read(ctx, p.Conn, &m); err != nil {
 			fmt.Println("failed at message reader", err)
 			if strings.Contains(err.Error(), "websocket: close") {
@@ -71,7 +52,7 @@ func (p *Participant) ReadMessage(h *Hub, r *http.Request) {
 		}
 		// intercept messaage
 
-		post := &MessageFeed{
+		message := &MessageFeed{
 			SID:      GenerateId(h),
 			RoomSlug: p.RoomSlug,
 			Content:  m.Content,
@@ -84,7 +65,7 @@ func (p *Participant) ReadMessage(h *Hub, r *http.Request) {
 			},
 			Created: time.Now(),
 		}
-		h.Broadcast <- post
+		h.Broadcast <- message
 	}
 }
 
@@ -98,6 +79,7 @@ func (c *Participant) WriteMessage(ctx context.Context) error {
 		case message := <-c.Message:
 			err := writeTimeout(ctx, time.Second*5, c.Conn, message)
 			if err != nil {
+				fmt.Println("er", err)
 				return err
 			}
 		case <-ctx.Done():

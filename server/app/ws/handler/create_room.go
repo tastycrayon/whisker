@@ -10,8 +10,8 @@ import (
 )
 
 type CreateRoomReq struct {
-	RoomName string `json:"roomname"`
-	RoomId   string `json:"roomId"`
+	RoomName string `json:"roomName"`
+	RoomSlug string `json:"roomSlug"`
 }
 
 func CreateRoom(h *ws.Hub) echo.HandlerFunc {
@@ -23,7 +23,7 @@ func CreateRoom(h *ws.Hub) echo.HandlerFunc {
 		if err := c.Bind(room); err != nil {
 			panic(err)
 		}
-		h.Rooms[room.RoomId] = ws.NewRoom(room.RoomId, room.RoomName, authRecord.Id, ws.PersonalRoom)
+		h.Rooms[room.RoomSlug] = ws.NewRoom(room.RoomSlug, room.RoomName, authRecord.Id, ws.PersonalRoom)
 
 		return c.JSON(http.StatusOK, room)
 	}

@@ -41,5 +41,6 @@ func NewRoom(roomSlug, roomName, createdBy string, roomType RoomType) *Room {
 		Type:              roomType,
 		Participants:      make(map[string]*Participant),
 		LocalMessageQueue: queue.NewCQueue[MessageFeed](128),
+		ParticipantMu:     sync.Mutex{},
 	}
 }
