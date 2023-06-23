@@ -64,8 +64,15 @@ export enum RoomType {
 }
 
 export interface IRoom {
-	roomSlug: string
-	roomName: string
-	roomType: string
+	id: string;
+	slug: string
+	name: string
+	description: string
 	createdBy: string
+}
+
+// error handling
+export interface FormResError<T> {
+	code: T | 'unknown';
+	message: string;
 }

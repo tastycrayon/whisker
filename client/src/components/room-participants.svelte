@@ -12,6 +12,7 @@
 	import { onMount } from 'svelte';
 	import { PUBLIC_POCKETBASE_URL } from '$env/static/public';
 	import type { IUser } from '$lib/types';
+	import type { ClientResponseError } from 'pocketbase';
 	// Navigation List
 	interface Person {
 		avatar: string;
@@ -36,9 +37,9 @@
 				d.avatar = `${PUBLIC_POCKETBASE_URL}/api/files/users/${d.id}/${d.avatar}`;
 				return d;
 			});
-		} catch (err: any) {
+		} catch (err: unknown) {
 			const t: ToastSettings = {
-				message: err.message,
+				message: (err as ClientResponseError).message,
 				background: 'variant-filled-error'
 			};
 			toastStore.trigger(t);

@@ -18,13 +18,18 @@ func CreateRoom(h *ws.Hub) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		authRecord, _ := c.Get(apis.ContextAuthRecordKey).(*models.Record)
 
-		room := new(CreateRoomReq)
+		roomReq := new(CreateRoomReq)
 
-		if err := c.Bind(room); err != nil {
-			panic(err)
+		if err := c.Bind(roomReq); err != nil {
+			return apis.NewApiError(http.StatusBadRequest, "could not open room with given parameters", nil)
 		}
-		h.Rooms[room.RoomSlug] = ws.NewRoom(room.RoomSlug, room.RoomName, authRecord.Id, ws.PersonalRoom)
 
-		return c.JSON(http.StatusOK, room)
+		if _, roomFound := h.Rooms[roomReq.RoomSlug]; roomFound {
+			return apis.NewApiError(http.StatusBadRequest, "room already exists", nil)
+		}
+
+		h.Rooms[roomReq.RoomSlug] = ws.NewRoom(roomReq.RoomSlug, roomReq.RoomName, authRecord.Id, ws.PersonalRoom)
+
+		return c.JSON(http.StatusOK, roomReq)
 	}
 }

@@ -4,7 +4,7 @@
 
 	export let avatar = '';
 	export let name = '';
-	export let timestamp = 0;
+	export let timestamp = '';
 	export let message = '';
 	export let self = false;
 </script>

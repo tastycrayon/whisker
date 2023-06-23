@@ -2,7 +2,6 @@ package app
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/url"
 
 	"github.com/labstack/echo/v5"
@@ -44,7 +43,6 @@ func CustomAuthMiddleware(app core.App) echo.MiddlewareFunc {
 		return func(c echo.Context) error {
 			authRecord, _ := c.Get(apis.ContextAuthRecordKey).(*models.Record)
 			if authRecord == nil {
-				fmt.Println("got hit 2")
 				return apis.NewForbiddenError("Only registered user can access this endpoint", nil)
 			}
 			return next(c)

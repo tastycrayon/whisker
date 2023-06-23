@@ -126,7 +126,7 @@
 			<Message
 				avatar={generateUserAvatar(bubble.sender.id, bubble.sender.avatar)}
 				name={bubble.sender.userName}
-				timestamp={parseInt(bubble.created)}
+				timestamp={bubble.created}
 				message={bubble.content.toString()}
 				self={bubble.sender.userName == $currentUser?.username}
 			/>

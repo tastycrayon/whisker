@@ -79,7 +79,7 @@
 					{/each}
 				</div>
 			{:else if $roomStore.data}
-				{#each $roomStore.data.filter((e) => e.roomType == RoomType.PublicRoom) as room, i}
+				{#each $roomStore.data.filter((e) => e.roomType == RoomType.PublicRoom) as room}
 					<RoomItem {room} />
 				{/each}
 			{/if}
@@ -109,7 +109,7 @@
 					{/each}
 				</div>
 			{:else if $roomStore.data}
-				{#each $roomStore.data.filter((e) => e.roomType != RoomType.PublicRoom) as room, i}
+				{#each $roomStore.data.filter((e) => e.roomType == RoomType.PersonalRoom) as room}
 					<RoomItem {room} />
 				{/each}
 			{/if}

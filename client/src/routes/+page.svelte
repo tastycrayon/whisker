@@ -7,9 +7,18 @@
 	import { onMount } from 'svelte';
 	import { modalStore, type ModalComponent, type ModalSettings } from '@skeletonlabs/skeleton';
 	import Login from '$components/login.svelte';
+	import Rooms from '$components/rooms.svelte';
+	import AuthProviders from '$components/auth-providers.svelte';
+	import Icon from '$components/icon.svelte';
+
+	export let user: any;
 
 	const modalComponent: ModalComponent = {
-		ref: Login,
+		// Pass a reference to your custom component
+		ref: AuthProviders,
+		// Add the component properties as key/value pairs
+		props: { background: 'bg-red-500' },
+		// Provide a template literal for the default component slot
 		slot: '<p>Skeleton</p>'
 	};
 	const handleModal = () => {
@@ -43,7 +52,29 @@
 		<a href={'rooms/' + room.roomId}>{room.roomName}</a> &emsp;
 	{/each}
 {/if} -->
-<h1>test</h1>
-{#if !$currentUser}
-	<button on:click={handleModal}>login</button>
-{/if}
+<div class="container mx-auto flex justify-center items-center flex-auto h-full">
+	<div class="p-4 max-w-[640px] space-y-3">
+		<h1 class="h1">
+			Whisker<span
+				class="bg-gradient-to-br from-pink-500 to-violet-500 bg-clip-text text-transparent box-decoration-clone"
+				>Chat</span
+			>
+		</h1>
+		<p class="text-sm">Revitalize your passion. Connect. Heal. Code.</p>
+		<br />
+		<p>
+			Introducing "CodeHeal," a revolutionary chat app designed exclusively for programmers who are
+			battling burnout and depression. We understand the unique challenges and pressures that come
+			with a career in programming, and we're here to support you on your journey to recovery and
+			well-being. CodeHeal provides a safe, judgment-free space where programmers can connect with
+			like-minded individuals, share their experiences, and find solace in a supportive community.
+		</p>
+		{#if !$currentUser}
+			<button on:click={handleModal}>login</button>
+		{/if}
+		<button type="button" class="btn variant-filled m-0" on:click={handleModal}>
+			<Icon name="login" fill width="24px" height="24px" />
+			<span>SIGN IN</span>
+		</button>
+	</div>
+</div>

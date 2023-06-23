@@ -16,9 +16,9 @@ func JoinRoom(h *ws.Hub) echo.HandlerFunc {
 		r, w := c.Request(), c.Response()
 
 		roomSlug := c.PathParam("roomSlug")
-		_, doesRoomExist := h.Rooms[roomSlug]
-		if !doesRoomExist {
-			return apis.NewApiError(http.StatusInternalServerError, "room not found", nil)
+
+		if _, roomFound := h.Rooms[roomSlug]; !roomFound {
+			return apis.NewApiError(http.StatusNotFound, "room not found", nil)
 		}
 		// get user
 		authRecord, _ := c.Get(apis.ContextAuthRecordKey).(*models.Record)
@@ -26,6 +26,7 @@ func JoinRoom(h *ws.Hub) echo.HandlerFunc {
 		opts := &websocket.AcceptOptions{
 			OriginPatterns: []string{"localhost:5173"},
 		}
+
 		conn, err := websocket.Accept(w, r, opts)
 		if err != nil {
 			fmt.Println(err)

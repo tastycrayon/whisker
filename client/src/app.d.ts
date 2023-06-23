@@ -7,6 +7,9 @@ declare global {
 		// interface PageData {}
 		// interface Platform {}
 	}
+	interface FormEventHandler<T> {
+		target: EventTarget | null;
+	}
 }
 
-export {};
+export { };

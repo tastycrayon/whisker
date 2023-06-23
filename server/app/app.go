@@ -2,15 +2,24 @@ package app
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/pocketbase/pocketbase"
+	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/models"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
 	"github.com/tastycrayon/go-chat/app/ws"
 )
 
 func Run() {
 	pb := pocketbase.New()
+
+	// migration
+	migratecmd.MustRegister(pb, pb.RootCmd, &migratecmd.Options{
+		Automigrate: true, // auto creates migration files when making collection changes
+	})
+
 	hub := ws.NewHub()
 
 	rooms := []struct {
@@ -35,8 +44,25 @@ func Run() {
 		InitRoutes(pb, e, hub)
 		return nil
 	})
-	migratecmd.MustRegister(pb, pb.RootCmd, &migratecmd.Options{
-		Automigrate: true, // auto creates migration files when making collection changes
+
+	pb.OnRecordAfterCreateRequest().Add(func(e *core.RecordCreateEvent) error {
+		if e.Record.Collection().Name == "rooms" {
+			authRecord, _ := e.HttpContext.Get(apis.ContextAuthRecordKey).(*models.Record)
+			if authRecord == nil {
+				return apis.NewForbiddenError("Only authenticated records can perform this endpoint", nil)
+			}
+
+			slug := e.Record.GetString("slug")
+			name := e.Record.GetString("name")
+
+			if _, roomFound := hub.Rooms[slug]; roomFound {
+				return apis.NewApiError(http.StatusBadRequest, "room already exists", nil)
+			}
+
+			hub.Rooms[slug] = ws.NewRoom(slug, name, authRecord.Id, ws.PersonalRoom)
+
+		}
+		return nil
 	})
 
 	if err := pb.Start(); err != nil {

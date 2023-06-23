@@ -26,17 +26,3 @@ export const initGoogleAuth = async (callback = () => { }) => {
 		// console.log({ a: pb.authStore.isValid, b: pb.authStore.token, c: pb?.authStore?.model?.id });
 	} catch (_) { }
 };
-
-// callback is executed after successfull authentication
-export const initFacebookAuth = async (callback = () => { }) => {
-	try {
-		const authData = await pb.collection('users').authWithOAuth2({ provider: 'facebook' });
-		currentUser.set(pb.authStore.model);
-		// if (authData) window.location.reload();
-		if (authData) {
-			invalidateAll();
-			callback();
-		}
-		// console.log({ a: pb.authStore.isValid, b: pb.authStore.token, c: pb?.authStore?.model?.id });
-	} catch (_) { }
-};

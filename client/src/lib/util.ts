@@ -1,6 +1,6 @@
 import { PUBLIC_POCKETBASE_URL } from "$env/static/public";
 
-export function timeSince(time: number) {
+export function timeSince(time: number | string) {
     switch (typeof time) {
         case 'number':
             break;
