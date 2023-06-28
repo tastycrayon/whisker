@@ -13,7 +13,8 @@ type Hub struct {
 	Register   chan *Participant
 	Unregister chan *Participant
 	Rooms      map[string]*Room
-	Node       *snowflake.Node
+	// snowflake generator node is used for making message id
+	Node *snowflake.Node
 	// SubscriberMessageBuffer controls the max number
 	// of messages that can be queued for a subscriber
 	// before it is kicked.
@@ -36,7 +37,9 @@ func (h *Hub) Run() {
 					room.ParticipantMu.Lock()
 					room.Participants[participant.Id] = participant
 					room.ParticipantMu.Unlock()
-					go func() {
+					go func(r *Room) {
+						r.ParticipantMu.Lock()
+						defer r.ParticipantMu.Unlock()
 						// fetch exisiting messages and post
 						mList := GenerateCustomMessage(
 							participant,
@@ -50,11 +53,11 @@ func (h *Hub) Run() {
 							participant,
 							GenerateId(h),
 							Ping,
-							GetAllParticipants(h),
+							GetAllParticipants(r),
 						)
 						participant.WriteCustomMessage(pList)
-						h.Broadcast <- GenerateUserJoinedMessage(participant, GenerateId(h))
-					}()
+					}(room)
+					h.Broadcast <- GenerateUserJoinedMessage(participant, GenerateId(h))
 				}
 			}
 		case participant := <-h.Unregister:
@@ -72,11 +75,11 @@ func (h *Hub) Run() {
 				if room.Type != PublicRoom { // must not be a public room
 					time.AfterFunc(1*time.Hour, func() {
 						if room, doesRoomExist := h.Rooms[participant.RoomSlug]; doesRoomExist {
+							room.ParticipantMu.Lock()
 							if len(room.Participants) == 0 {
-								room.ParticipantMu.Lock()
 								delete(h.Rooms, participant.RoomSlug)
-								room.ParticipantMu.Unlock()
 							}
+							room.ParticipantMu.Unlock()
 						}
 					})
 				}
@@ -104,9 +107,9 @@ func NewHub() *Hub {
 		panic(err)
 	}
 	return &Hub{
-		Broadcast:               make(chan *MessageFeed, 5),
-		Register:                make(chan *Participant),
-		Unregister:              make(chan *Participant),
+		Broadcast:               make(chan *MessageFeed, 16),
+		Register:                make(chan *Participant, 16),
+		Unregister:              make(chan *Participant, 16),
 		Rooms:                   make(map[string]*Room),
 		Node:                    node,
 		SubscriberMessageBuffer: 16,

@@ -27,10 +27,11 @@ func Run() {
 	DefaultRoomList := GetDefaultRooms()
 	for _, room := range DefaultRoomList {
 		hub.Rooms[room.slug] = ws.NewRoom(
-			room.id, room.slug, room.name, room.description, "Admin",
+			room.id, room.slug, room.name, room.cover, room.description, "Admin",
 			"6/24/2023, 8:51:08 PM",
 			ws.PublicRoom)
 	}
+	// TODO: cover
 	go hub.Run()
 	// load default rooms end
 
@@ -45,10 +46,10 @@ func Run() {
 			slug := r.GetString("slug")
 			name := r.GetString("name")
 			description := r.GetString("description")
+			cover := r.GetString("cover")
 			createdBy := r.GetString("createdBy")
 			created := r.GetCreated().String()
-			fmt.Println(created)
-			hub.Rooms[slug] = ws.NewRoom(id, slug, name, description, createdBy, created, ws.PersonalRoom)
+			hub.Rooms[slug] = ws.NewRoom(id, slug, name, cover, description, createdBy, created, ws.PersonalRoom)
 		}
 
 		InitRoutes(pb, e, hub)
@@ -64,15 +65,16 @@ func Run() {
 			id := e.Record.GetString("id")
 			slug := e.Record.GetString("slug")
 			name := e.Record.GetString("name")
+			cover := e.Record.GetString("cover")
 			description := e.Record.GetString("description")
 			createdBy := authRecord.GetString("createdBy")
 			created := authRecord.GetCreated().String()
-			fmt.Println("created", created)
+
 			if _, roomFound := hub.Rooms[slug]; roomFound {
 				return apis.NewApiError(http.StatusBadRequest, "room already exists", nil)
 			}
 
-			hub.Rooms[slug] = ws.NewRoom(id, slug, name, description, createdBy, created, ws.PersonalRoom)
+			hub.Rooms[slug] = ws.NewRoom(id, slug, name, cover, description, createdBy, created, ws.PersonalRoom)
 		}
 		return nil
 	})

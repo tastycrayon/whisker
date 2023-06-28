@@ -18,7 +18,8 @@ type Room struct {
 	// URL for Room, Eg: /rooms/my-awesome-room
 	RoomSlug string `json:"slug"`
 	// Room name, Eg: My awesome room
-	RoomName  string `json:"name"`
+	RoomName string `json:"name"`
+	// cover image of the room
 	RoomCover string `json:"cover"`
 	// A short description about the room
 	RoomDescription string `json:"description"`
@@ -39,11 +40,12 @@ type Room struct {
 	ParticipantMu *sync.Mutex `json:"-"`
 }
 
-func NewRoom(roomId, roomSlug, roomName, description, createdBy string, created string, roomType RoomType) *Room {
+func NewRoom(roomId, roomSlug, roomName, roomCover, description, createdBy string, created string, roomType RoomType) *Room {
 	return &Room{
 		RoomId:            roomId,
 		RoomSlug:          roomSlug,
 		RoomName:          roomName,
+		RoomCover:         roomCover,
 		RoomDescription:   description,
 		CreatedBy:         createdBy,
 		Type:              roomType,
