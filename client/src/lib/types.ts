@@ -1,3 +1,10 @@
+export interface ResponseData<T> {
+	loading: boolean;
+	error: any | undefined;
+	data: T
+}
+
+// participant
 export interface IUser {
 	avatar: string
 	collectionId: string
@@ -25,8 +32,8 @@ export enum MessageType {
 interface PingType {
 	sid: string;
 	messageType: MessageType.Ping;
-	content: ISender[]
-	sender: ISender;
+	content: IParticipant[]
+	sender: IParticipant;
 	roomSlug: string;
 	created: string;
 }
@@ -34,7 +41,7 @@ interface HistoryType {
 	sid: string;
 	messageType: MessageType.History;
 	content: IMessage[]
-	sender: ISender;
+	sender: IParticipant;
 	roomSlug: string;
 	created: string;
 }
@@ -42,20 +49,18 @@ interface NormalType {
 	sid: string;
 	messageType: MessageType.Welcome | MessageType.Bailout | MessageType.Text | MessageType.Swap;
 	content: string;
-	sender: ISender;
+	sender: IParticipant;
 	roomSlug: string;
 	created: string;
 }
 
 export type IMessage = PingType | HistoryType | NormalType
-export interface ISender {
+export interface IParticipant {
 	id: string;
-	userName: string;
+	username: string;
 	roomSlug: string;
 	avatar: string;
 }
-
-
 
 // room
 export enum RoomType {
@@ -65,10 +70,18 @@ export enum RoomType {
 
 export interface IRoom {
 	id: string;
+	cover: string;
 	slug: string
 	name: string
+	type: string;
 	description: string
 	createdBy: string
+	created: string
+}
+export interface ParticipantRoom {
+	id: string;
+	name: string;
+	avatar: string;
 }
 
 // error handling

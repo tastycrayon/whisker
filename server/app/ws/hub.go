@@ -39,7 +39,7 @@ func (h *Hub) Run() {
 					go func() {
 						// fetch exisiting messages and post
 						mList := GenerateCustomMessage(
-							*participant,
+							participant,
 							GenerateId(h),
 							History,
 							room.LocalMessageQueue.GetInternalSlice(),
@@ -47,13 +47,13 @@ func (h *Hub) Run() {
 						participant.WriteCustomMessage(mList)
 						// fetching participant list
 						pList := GenerateCustomMessage(
-							*participant,
+							participant,
 							GenerateId(h),
 							Ping,
 							GetAllParticipants(h),
 						)
 						participant.WriteCustomMessage(pList)
-						h.Broadcast <- GenerateUserJoinedMessage(*participant, GenerateId(h))
+						h.Broadcast <- GenerateUserJoinedMessage(participant, GenerateId(h))
 					}()
 				}
 			}
@@ -61,7 +61,7 @@ func (h *Hub) Run() {
 			if room, doesRoomExist := h.Rooms[participant.RoomSlug]; doesRoomExist {
 				if _, doesParticipant := room.Participants[participant.Id]; doesParticipant {
 					fmt.Println("delete connection")
-					post := GenerateUserLeftMessage(*participant, GenerateId(h))
+					post := GenerateUserLeftMessage(participant, GenerateId(h))
 					h.Broadcast <- post
 					// delete participant
 					room.ParticipantMu.Lock()

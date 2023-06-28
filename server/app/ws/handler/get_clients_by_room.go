@@ -4,14 +4,18 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v5"
+	"github.com/pocketbase/pocketbase/apis"
 	"github.com/tastycrayon/go-chat/app/ws"
 )
 
-func GetParticipantByRoom(h *ws.Hub) echo.HandlerFunc {
+func GetParticipantsByRoom(h *ws.Hub) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		roomId := c.PathParam("roomSlug")
+		roomSlug := c.QueryParam("roomSlug")
+		if roomSlug == "" {
+			return apis.NewBadRequestError("room not found", nil)
+		}
 		participants := make([]*ws.Participant, 0)
-		if room, roomExist := h.Rooms[roomId]; roomExist && len(room.Participants) != 0 {
+		if room, roomExist := h.Rooms[roomSlug]; roomExist && len(room.Participants) != 0 {
 			for _, v := range room.Participants {
 				participants = append(participants, v)
 			}

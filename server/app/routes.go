@@ -52,21 +52,28 @@ func CustomAuthMiddleware(app core.App) echo.MiddlewareFunc {
 
 func InitRoutes(pb *pocketbase.PocketBase, e *core.ServeEvent, hub *ws.Hub) {
 
-	var group *echo.Group = e.Router.Group("/rooms")
+	var roomGroup *echo.Group = e.Router.Group("/rooms")
 
-	group.Use(CustomAuthMiddleware(pb)) // requires auth
-	group.Use(apis.ActivityLogger(pb))  // print logs
+	roomGroup.Use(CustomAuthMiddleware(pb)) // requires auth
+	roomGroup.Use(apis.ActivityLogger(pb))  // print logs
 
-	group.POST("", handler.CreateRoom(hub))
+	roomGroup.POST("", handler.CreateRoom(hub))
 	e.Router.GET("/rooms/:roomSlug",
 		handler.JoinRoom(hub),
 		LoadCookieTokenToHeader(pb),
 		apis.LoadAuthContext(pb), CustomAuthMiddleware(pb),
 	)
-	group.GET("", handler.GetAvailableRooms(hub))
+	roomGroup.GET("", handler.GetAvailableRooms(hub))
 
-	e.Router.GET("/participants/:roomSlug",
-		handler.GetParticipantByRoom(hub),
+	// participants
+	var participantGroup *echo.Group = e.Router.Group("/participants")
+	participantGroup.GET("",
+		handler.GetParticipantsByRoom(hub),
+		CustomAuthMiddleware(pb),
+		apis.ActivityLogger(pb),
+	)
+	participantGroup.GET("/:participantId",
+		handler.GetParticipantById(pb),
 		CustomAuthMiddleware(pb),
 		apis.ActivityLogger(pb),
 	)

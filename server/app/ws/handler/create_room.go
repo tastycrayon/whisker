@@ -5,18 +5,18 @@ import (
 
 	"github.com/labstack/echo/v5"
 	"github.com/pocketbase/pocketbase/apis"
-	"github.com/pocketbase/pocketbase/models"
 	"github.com/tastycrayon/go-chat/app/ws"
 )
 
 type CreateRoomReq struct {
-	RoomName string `json:"roomName"`
-	RoomSlug string `json:"roomSlug"`
+	RoomName        string `json:"name"`
+	RoomSlug        string `json:"slug"`
+	RoomDescription string `json:"description"`
 }
 
 func CreateRoom(h *ws.Hub) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		authRecord, _ := c.Get(apis.ContextAuthRecordKey).(*models.Record)
+		// authRecord, _ := c.Get(apis.ContextAuthRecordKey).(*models.Record)
 
 		roomReq := new(CreateRoomReq)
 
@@ -28,7 +28,7 @@ func CreateRoom(h *ws.Hub) echo.HandlerFunc {
 			return apis.NewApiError(http.StatusBadRequest, "room already exists", nil)
 		}
 
-		h.Rooms[roomReq.RoomSlug] = ws.NewRoom(roomReq.RoomSlug, roomReq.RoomName, authRecord.Id, ws.PersonalRoom)
+		// h.Rooms[roomReq.RoomSlug] = ws.NewRoom("-", roomReq.RoomSlug, roomReq.RoomName, roomReq.RoomDescription, authRecord.Id, ws.PersonalRoom)
 
 		return c.JSON(http.StatusOK, roomReq)
 	}

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { COOKIE_OPTIONS, ROOM_PATH } from '$lib/constant';
-	import { pb } from '$lib/pocketbase';
+	import { currentUser, pb } from '$lib/pocketbase';
 	import { REGISTER_PATH } from '$lib/constant';
 	import Icon from '$components/icon.svelte';
 	import Separator from '$components/separator.svelte';
@@ -9,6 +9,7 @@
 	import type { FormResError } from '$lib/types';
 	import type { ClientResponseError } from 'pocketbase';
 	import { ProgressRadial } from '@skeletonlabs/skeleton';
+	import { onMount } from 'svelte';
 
 	enum FormFieldKey {
 		EmailOrUsername = 'emailOrUsername',
@@ -60,10 +61,17 @@
 		`input  ${error?.code && keys.includes(error.code) ? 'input-error' : ''}`;
 
 	let isPasswordVisible = false;
+
+	onMount(() => {
+		if ($currentUser?.id) goto(ROOM_PATH);
+	});
 </script>
 
 <div class="card p-4 max-w-[400px] mx-auto space-y-4 my-4">
-	<h1 class="h3 font-bold">SIGN IN</h1>
+	<div class="inline-flex items-center">
+		<h1 class="h1">Sign In</h1>
+		<Icon name="cat" class="text-purple-600" width="48px" height="48px" />
+	</div>
 	{#if error?.code == 'unknown'}<p class="text-error-500">{error.message}</p>{/if}
 
 	<form method="POST" class="space-y-2" on:submit|preventDefault={formHandler}>

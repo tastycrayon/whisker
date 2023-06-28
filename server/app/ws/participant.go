@@ -57,13 +57,8 @@ func (p *Participant) ReadMessage(h *Hub, ctx context.Context) {
 			RoomSlug: p.RoomSlug,
 			Content:  m.Content,
 			Type:     m.Type,
-			Sender: MessageSender{
-				Id:       p.Id,
-				Username: p.Username,
-				RoomSlug: p.RoomSlug,
-				Avatar:   p.Avatar,
-			},
-			Created: time.Now(),
+			Sender:   *p,
+			Created:  time.Now(),
 		}
 		h.Broadcast <- message
 	}

@@ -10,8 +10,7 @@
 	import Rooms from '$components/rooms.svelte';
 	import AuthProviders from '$components/auth-providers.svelte';
 	import Icon from '$components/icon.svelte';
-
-	export let user: any;
+	import Typewriter from '$components/typewriter.svelte';
 
 	const modalComponent: ModalComponent = {
 		// Pass a reference to your custom component
@@ -31,36 +30,21 @@
 	};
 </script>
 
-<!-- <form method="POST" on:submit|preventDefault={JoinRoomFormHandler}>
-	<input type="text" name={FormFieldKey.RoomID} id={FormFieldKey.RoomID} />
-	<button type="submit">join room</button>
-	<br />
-</form>
-
-<form method="POST" on:submit|preventDefault={CreateRoomFormHandler}>
-	<input type="text" name={FormFieldKey.RoomID} id={FormFieldKey.RoomID} />
-	<button type="submit">create room</button>
-	<br />
-</form>
-<br /> -->
-<!-- 
-{JSON.stringify({ rooms })}
-<button on:click={fetchRooms}>Get Rooms</button> -->
-
-<!-- {#if rooms}
-	{#each rooms as room}
-		<a href={'rooms/' + room.roomId}>{room.roomName}</a> &emsp;
-	{/each}
-{/if} -->
 <div class="container mx-auto flex justify-center items-center flex-auto h-full">
 	<div class="p-4 max-w-[640px] space-y-3">
-		<h1 class="h1">
-			Whisker<span
-				class="bg-gradient-to-br from-pink-500 to-violet-500 bg-clip-text text-transparent box-decoration-clone"
-				>Chat</span
-			>
-		</h1>
-		<p class="text-sm">Revitalize your passion. Connect. Heal. Code.</p>
+		<div class="inline-flex items-center">
+			<h1 class="h1">
+				Whisker<span
+					class="bg-gradient-to-br from-pink-500 to-violet-500 bg-clip-text text-transparent box-decoration-clone"
+					>Chat</span
+				>
+			</h1>
+			<Icon name="cat" class="text-purple-600" width="72px" height="72px" />
+		</div>
+		<p class="font-thin">
+			Revitalize your passion. <Typewriter slogans={['Connect.', 'Heal.', 'Code.']} />
+		</p>
+
 		<br />
 		<p>
 			Introducing "CodeHeal," a revolutionary chat app designed exclusively for programmers who are
@@ -72,9 +56,8 @@
 		{#if !$currentUser}
 			<button on:click={handleModal}>login</button>
 		{/if}
-		<button type="button" class="btn variant-filled m-0" on:click={handleModal}>
-			<Icon name="login" fill width="24px" height="24px" />
-			<span>SIGN IN</span>
+		<button type="button" class="btn variant-ghost-primary m-0" on:click={handleModal}>
+			<span>Get Started</span>
 		</button>
 	</div>
 </div>

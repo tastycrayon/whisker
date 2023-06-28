@@ -1,5 +1,5 @@
 <script>
-	import Rooms from '$components/rooms.svelte';
+	import Rooms from '$components/room/rooms.svelte';
 	import { currentUser } from '$lib/pocketbase';
 	import { LightSwitch } from '@skeletonlabs/skeleton';
 </script>
