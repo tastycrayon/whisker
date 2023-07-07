@@ -1,1 +1,0 @@
-var o=(r=>(r.Room="rooms",r.User="users",r))(o||{}),t=(r=>(r[r.Welcome=2]="Welcome",r[r.Ping=4]="Ping",r[r.Text=8]="Text",r[r.Bailout=16]="Bailout",r[r.Swap=32]="Swap",r[r.History=64]="History",r))(t||{}),u=(r=>(r.PublicRoom="public",r.PersonalRoom="personal",r))(u||{});export{o as C,t as M,u as R};
