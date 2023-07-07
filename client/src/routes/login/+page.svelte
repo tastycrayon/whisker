@@ -47,10 +47,11 @@
 		} catch (err) {
 			const e = (err as ClientResponseError).response.data;
 			const keys = [FormFieldKey.EmailOrUsername, FormFieldKey.Password];
-			if (e !== undefined)
+			if (e !== undefined && keys.includes((Object.keys(e).pop() || '') as any))
 				for (const key of keys) {
 					if (e[key] !== undefined) makeErrObj(key, e[key].message);
 				}
+			else makeErrObj('unknown', 'Failed signin in.');
 		} finally {
 			loading = false;
 		}
@@ -106,7 +107,7 @@
 			</div>
 			<small class="text-error-500">{formatError(FormFieldKey.Password)}</small>
 		</label>
-		<button type="submit" disabled={loading} class="btn variant-filled">
+		<button type="submit" disabled={loading} class="btn btn-sm variant-filled">
 			<span>SUBMIT</span>
 			{#if loading}
 				<ProgressRadial width="w-4" stroke={150} track="stroke-secondary-500/30" />

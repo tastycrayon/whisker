@@ -1,3 +1,9 @@
+// collection
+export enum CollectionName {
+	Room = 'rooms',
+	User = 'users'
+}
+
 export interface ResponseData<T> {
 	loading: boolean;
 	error: any | undefined;

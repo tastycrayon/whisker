@@ -2,25 +2,29 @@
 	import Message from '$components/message.svelte';
 	import { onMount } from 'svelte';
 	import { page, navigating } from '$app/stores';
-	import { currentUser, pb } from '$lib/pocketbase';
-	import { PUBLIC_POCKETBASE_URL, PUBLIC_WEBSOCKET_URL } from '$env/static/public';
-	import { ROOM_PATH } from '$lib/constant';
-	import { messageStore, participantStore } from '$lib/store';
+	import { currentUser } from '$lib/pocketbase';
+	import { PUBLIC_WEBSOCKET_URL } from '$env/static/public';
+	import { DEFAULT_ROOM, ROOM_PATH } from '$lib/constant';
+	import { currentRoom, messageStore, participantStore, refreshRooms, roomStore } from '$lib/store';
 	import { onDestroy } from 'svelte';
-	import { MessageType, type IMessage } from '$lib/types';
+	import { MessageType, type IMessage, CollectionName } from '$lib/types';
 	import Icon from '$components/icon.svelte';
-	import { generateUserAvatar } from '$lib/util';
+	import { generateAvatar } from '$lib/util';
+	import { goto } from '$app/navigation';
 
 	let socket: WebSocket | undefined;
+
 	let elemChat: HTMLElement;
 	let messageFeed: IMessage[] = [];
 	let currentMessage = '';
+	let timer: number;
+	$: if ($page.params.roomSlug !== $currentRoom) currentRoom.set($page.params.roomSlug);
 
-	const roomSwitcher = () => {
-		if (!$navigating) return;
+	const roomSwitcher = (): boolean => {
+		if (!$navigating) return false;
 		const { from, to } = $navigating;
-		if (!from?.params || !to?.params || !from.route || !to.route) return;
-		if (from.params.roomSlug == to.params.roomSlug || !(from.route.id == to.route.id)) return;
+		if (!from?.params || !to?.params || !from.route || !to.route) return false;
+		if (from.params.roomSlug == to.params.roomSlug || !(from.route.id == to.route.id)) return false;
 		if (socket) {
 			socket.send(
 				JSON.stringify({
@@ -30,16 +34,25 @@
 					messageType: MessageType.Swap
 				})
 			);
+			currentRoom.set(to.params.roomSlug);
+			return true;
 		}
+		return false;
 	};
+	currentRoom.subscribe(() => {});
 	$: if ($navigating) {
 		roomSwitcher();
 		setTimeout(() => {
 			scrollChatBottom('smooth');
 		}, 0);
 	}
+	const openConn = () => {
+		if (socket) return;
+		socket = new WebSocket(`${PUBLIC_WEBSOCKET_URL}${ROOM_PATH}/${$currentRoom}`);
+	};
 	onMount(() => {
-		socket = new WebSocket(`${PUBLIC_WEBSOCKET_URL}${ROOM_PATH}/${$page.params.roomSlug}`);
+		openConn();
+		if (!socket) return;
 		// Connection opened
 		socket.onopen = (event) => {
 			console.log("It's open");
@@ -47,7 +60,6 @@
 		// Listen for messages
 		socket.onmessage = (event) => {
 			const m = JSON.parse(event.data) as IMessage;
-			console.log({ m });
 			switch (m.messageType) {
 				case MessageType.Swap:
 					break;
@@ -62,7 +74,7 @@
 					break;
 				case MessageType.Ping:
 					console.log({ ping: m });
-					if (Array.isArray(m.content)) participantStore.set(m.content);
+					if (Array.isArray(m.content)) participantStore.update((s) => ({ ...s, data: m.content }));
 					break;
 				case MessageType.History:
 					messageFeed = [];
@@ -73,15 +85,22 @@
 					break;
 			}
 		};
-		socket.onerror = (event) => {
-			console.log('error');
+		socket.onerror = async (event) => {
+			console.log('err');
 		};
 		socket.onclose = (event) => {
 			console.log('closed');
+			if (timer) clearTimeout(timer);
+			timer = setTimeout(async () => {
+				await refreshRooms();
+				const currentRoom = $roomStore.data.find((e) => e.slug === $page.params.roomSlug);
+				if (!currentRoom) goto(ROOM_PATH + '/' + DEFAULT_ROOM);
+			}, 1000);
 		};
 	});
 	onDestroy(() => {
 		if (socket) socket.close();
+		if (timer) clearTimeout(timer);
 	});
 
 	const sendMessage = (): void => {
@@ -101,7 +120,7 @@
 	});
 
 	function scrollChatBottom(behavior?: ScrollBehavior): void {
-		elemChat.scrollTo({ top: elemChat.scrollHeight, behavior });
+		if (elemChat) elemChat.scrollTo({ top: elemChat.scrollHeight, behavior });
 	}
 
 	function onPromptKeydown(event: KeyboardEvent): void {
@@ -122,13 +141,13 @@
 	<!-- <div class="grid grid-row-[1fr_auto]"> -->
 	<!-- Conversation -->
 	<section bind:this={elemChat} class="p-4 overflow-y-auto space-y-4">
-		{#each messageList as bubble, i}
+		{#each messageList as m, i}
 			<Message
-				avatar={generateUserAvatar(bubble.sender.id, bubble.sender.avatar)}
-				name={bubble.sender.userName}
-				timestamp={bubble.created}
-				message={bubble.content.toString()}
-				self={bubble.sender.userName == $currentUser?.username}
+				avatar={generateAvatar(CollectionName.User, m.sender.id, m.sender.avatar)}
+				name={m.sender.username}
+				timestamp={m.created}
+				message={m.content.toString()}
+				self={m.sender.username == $currentUser?.username}
 			/>
 		{/each}
 	</section>

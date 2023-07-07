@@ -10,7 +10,6 @@ import (
 func GetAvailableRooms(h *ws.Hub) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		rooms := make([]ws.Room, 0)
-
 		for _, room := range h.Rooms {
 			rooms = append(rooms, *room)
 		}

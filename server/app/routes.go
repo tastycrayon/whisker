@@ -51,7 +51,10 @@ func CustomAuthMiddleware(app core.App) echo.MiddlewareFunc {
 }
 
 func InitRoutes(pb *pocketbase.PocketBase, e *core.ServeEvent, hub *ws.Hub) {
+	// static
+	e.Router.Static("/", "static")
 
+	// rooms
 	var roomGroup *echo.Group = e.Router.Group("/rooms")
 
 	roomGroup.Use(CustomAuthMiddleware(pb)) // requires auth

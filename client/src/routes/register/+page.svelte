@@ -13,7 +13,6 @@
 	enum FormFieldKey {
 		Email = 'email',
 		Username = 'username',
-		Fullname = 'name',
 		Password = 'password',
 		PasswordConfirm = 'passwordConfirm',
 		Avatar = 'avatar'
@@ -32,11 +31,9 @@
 		const formData = new FormData(form);
 		const email = formData.get(FormFieldKey.Email)?.toString().trim().toLowerCase();
 		const username = formData.get(FormFieldKey.Username)?.toString().trim().toLowerCase();
-		const name = formData.get(FormFieldKey.Fullname)?.toString().trim();
 		const password = formData.get(FormFieldKey.Password)?.toString().trim();
 		const passwordConfirm = formData.get(FormFieldKey.PasswordConfirm)?.toString().trim();
 
-		if (!name || name == '') return makeErrObj(FormFieldKey.Fullname, 'Name can not be empty.');
 		if (!email || email == '')
 			return makeErrObj(FormFieldKey.Email, 'Email address can not be empty.');
 		if (!username || username == '')
@@ -64,14 +61,14 @@
 			const keys = [
 				FormFieldKey.Email,
 				FormFieldKey.Username,
-				FormFieldKey.Fullname,
 				FormFieldKey.Password,
 				FormFieldKey.PasswordConfirm
 			];
-			if (e !== undefined)
+			if (e !== undefined && keys.includes((Object.keys(e).pop() || '') as any))
 				for (const key of keys) {
 					if (e[key] !== undefined) makeErrObj(key, e[key].message);
 				}
+			else makeErrObj('unknown', 'Failed to sign up.');
 		} finally {
 			loading = false;
 		}
@@ -109,17 +106,6 @@
 	</div>
 	{#if error?.code == 'unknown'}<p class="text-error-500">{error.message}</p>{/if}
 	<form method="POST" class="space-y-2" on:submit|preventDefault={formHandler}>
-		<!-- Full name -->
-		<label class="label">
-			<small>Your Fullname</small>
-			<input
-				class={setErrorClass([FormFieldKey.Email, 'unknown'])}
-				type="text"
-				name={FormFieldKey.Fullname}
-				placeholder="John Doe"
-			/>
-			<small class="text-error-500">{formatError(FormFieldKey.Fullname)}</small>
-		</label>
 		<!-- username -->
 		<label class="label">
 			<small>Username</small>

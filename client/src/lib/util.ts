@@ -1,4 +1,6 @@
 import { PUBLIC_POCKETBASE_URL } from "$env/static/public";
+import { modalStore, type ModalSettings } from "@skeletonlabs/skeleton";
+import type { CollectionName } from "./types";
 
 export function timeSince(time: number | string) {
     switch (typeof time) {
@@ -31,5 +33,31 @@ export function timeSince(time: number | string) {
 }
 
 
-export const generateUserAvatar = (id: string, avatar: string) =>
-    `${PUBLIC_POCKETBASE_URL}/api/files/users/${id}/${avatar}`
+export const generateAvatar = (coll: CollectionName, id: string, avatar: string) => {
+    if (id === "" || avatar == "") return "/default.jpg"
+    return `${PUBLIC_POCKETBASE_URL}/api/files/${coll}/${id}/${avatar}`
+}
+
+
+export const convertToSlug = (e: string): string => {
+    return e
+        .toLowerCase()
+        .replace(/ /g, '-')
+        .replace(/[^\w-]+/g, '');
+};
+
+
+export const firstConfirm = (): Promise<boolean> => {
+    return new Promise<boolean>((resolve) => {
+        const modal: ModalSettings = {
+            type: 'confirm',
+            title: 'Please Confirm',
+            body: 'Are you sure you wish to proceed?',
+            response: (r: boolean) => {
+                resolve(r);
+            }
+        };
+        modalStore.trigger(modal);
+    })
+};
+

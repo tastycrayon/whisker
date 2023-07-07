@@ -5,17 +5,18 @@
 		type ModalComponent,
 		type ModalSettings
 	} from '@skeletonlabs/skeleton';
-	import JoinRoom from './create-room.svelte';
+	import CreateRoom from './create-room.svelte';
 	import { onMount } from 'svelte';
 	import { refreshRooms, roomStore } from '$lib/store';
 	import Icon from '../icon.svelte';
 	import { RoomType } from '$lib/types';
 	import RoomItem from './roomlist-item.svelte';
+	import { ROOM_PLACEHOLDER_COUNT } from '$lib/constant';
 
 	// modal
 	const modalComponent: ModalComponent = {
 		// Pass a reference to your custom component
-		ref: JoinRoom,
+		ref: CreateRoom,
 		// Add the component properties as key/value pairs
 		props: { background: 'bg-red-500' },
 		// Provide a template literal for the default component slot
@@ -29,11 +30,6 @@
 		};
 		modalStore.trigger(modal);
 	};
-
-	onMount(async () => {
-		await refreshRooms();
-		console.log({ first: $roomStore });
-	});
 	$: defaultOpen = true;
 	$: publicOpen = true;
 </script>
@@ -42,8 +38,8 @@
 <div class="p-4 space-y-4 overflow-y-auto">
 	<nav class="list-nav">
 		<div class="w-full inline-flex justify-between items-center pb-2">
-			<button class="btn btn-sm variant-filled" on:click={handleModal}>
-				<span>💀</span>
+			<button class="btn btn-sm variant-ghost-surface" on:click={handleModal}>
+				<span><Icon name="chat" width="16px" height="16px" /></span>
 				<span>Create Room</span>
 			</button>
 			<button
@@ -74,7 +70,7 @@
 		<ul class={`list ${defaultOpen ? '' : 'hidden'}`}>
 			{#if $roomStore.loading}
 				<div class="space-y-5 py-2">
-					{#each new Array(7).fill(0) as _}
+					{#each new Array(ROOM_PLACEHOLDER_COUNT).fill(0) as _}
 						<div class="animate-pulse placeholder h-10" />
 					{/each}
 				</div>
@@ -104,7 +100,7 @@
 		<ul class={`list ${publicOpen ? '' : 'hidden'}`}>
 			{#if $roomStore.loading}
 				<div class="space-y-5 py-2">
-					{#each new Array(3).fill(0) as _}
+					{#each new Array(ROOM_PLACEHOLDER_COUNT).fill(0) as _}
 						<div class="animate-pulse placeholder h-10" />
 					{/each}
 				</div>

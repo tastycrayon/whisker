@@ -15,7 +15,7 @@ func init() {
 			{
 				"id": "_pb_users_auth_",
 				"created": "2023-06-01 09:32:51.602Z",
-				"updated": "2023-06-23 02:24:53.955Z",
+				"updated": "2023-07-04 15:15:04.243Z",
 				"name": "users",
 				"type": "auth",
 				"system": false,
@@ -69,13 +69,13 @@ func init() {
 					"manageRule": null,
 					"minPasswordLength": 8,
 					"onlyEmailDomains": null,
-					"requireEmail": false
+					"requireEmail": true
 				}
 			},
 			{
 				"id": "qn65wt47fm67idr",
 				"created": "2023-06-03 19:21:02.317Z",
-				"updated": "2023-06-28 11:28:52.696Z",
+				"updated": "2023-06-28 17:29:36.914Z",
 				"name": "rooms",
 				"type": "base",
 				"system": false,
@@ -178,9 +178,9 @@ func init() {
 				],
 				"listRule": "",
 				"viewRule": "",
-				"createRule": "@request.auth.id != \"\" && @request.auth.id = @request.data.createdBy",
-				"updateRule": null,
-				"deleteRule": "@request.auth.id != \"\" && @request.auth.id = @request.data.createdBy",
+				"createRule": "@request.auth.id != \"\" && @request.data.createdBy = @request.auth.id",
+				"updateRule": "@request.auth.id != \"\" && createdBy = @request.auth.id",
+				"deleteRule": "@request.auth.id != \"\" && createdBy = @request.auth.id",
 				"options": {}
 			}
 		]`

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { COOKIE_OPTIONS } from '$lib/constant';
+	import { COOKIE_OPTIONS, ROOM_PATH } from '$lib/constant';
 	import { currentUser, pb } from '$lib/pocketbase';
 	import { json } from '@sveltejs/kit';
 	import type { SendOptions } from 'pocketbase';
@@ -7,10 +7,12 @@
 	import { onMount } from 'svelte';
 	import { modalStore, type ModalComponent, type ModalSettings } from '@skeletonlabs/skeleton';
 	import Login from '$components/login.svelte';
-	import Rooms from '$components/rooms.svelte';
+	import Rooms from '$components/room/rooms.svelte';
 	import AuthProviders from '$components/auth-providers.svelte';
 	import Icon from '$components/icon.svelte';
 	import Typewriter from '$components/typewriter.svelte';
+	import { currentRoom } from '$lib/store';
+	import { goto } from '$app/navigation';
 
 	const modalComponent: ModalComponent = {
 		// Pass a reference to your custom component
@@ -28,6 +30,7 @@
 		};
 		modalStore.trigger(modal);
 	};
+	// $: if ($currentUser && $currentRoom) goto(ROOM_PATH + '/' + $currentRoom);
 </script>
 
 <div class="container mx-auto flex justify-center items-center flex-auto h-full">
@@ -54,10 +57,13 @@
 			like-minded individuals, share their experiences, and find solace in a supportive community.
 		</p>
 		{#if !$currentUser}
-			<button on:click={handleModal}>login</button>
+			<button type="button" class="btn variant-ghost-primary m-0" on:click={handleModal}>
+				<span>Get Started</span>
+			</button>
+		{:else}
+			<a class="btn variant-ghost-primary m-0" href={ROOM_PATH}>
+				<span>Get Started</span>
+			</a>
 		{/if}
-		<button type="button" class="btn variant-ghost-primary m-0" on:click={handleModal}>
-			<span>Get Started</span>
-		</button>
 	</div>
 </div>

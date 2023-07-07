@@ -4,17 +4,19 @@
 	import { currentUser } from '$lib/pocketbase';
 	import { onMount } from 'svelte';
 	import { refreshParticipants, participantStore } from '$lib/store';
+	import type { IRoom } from '$lib/types';
 
-	let showParticipantCount = false;
+	export let room: IRoom;
+	export let showParticipantCount = false;
+
 	onMount(async () => {
-		await refreshParticipants($page.params.roomSlug);
+		await refreshParticipants(room.slug);
 		showParticipantCount = true;
 	});
-	$: console.log({ first: $participantStore });
+	// $: console.log({ first: $participantStore });
 	$: currentParticipant =
 		$participantStore.data?.find((e) => e.id == ($currentUser?.id || '')) || '';
-	$: currentRoomParticipants =
-		$participantStore.data?.filter((p) => p.roomSlug == $page.params.roomSlug) || [];
+	$: currentRoomParticipants = $participantStore.data?.filter((p) => p.roomSlug == room.slug) || [];
 </script>
 
 <!-- List -->

@@ -1,20 +1,20 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { ROOM_PATH } from '$lib/constant';
-	import type { IRoom } from '$lib/types';
+	import { CollectionName, RoomType, type IRoom } from '$lib/types';
 	import {
 		Avatar,
 		modalStore,
 		type ModalSettings,
 		type ModalComponent
 	} from '@skeletonlabs/skeleton';
-	import RoomInfo from './roomlist-info.svelte';
-	import { participantStore } from '$lib/store';
+	import RoomInfo from './roomlist-tab.svelte';
+	import { generateAvatar } from '$lib/util';
 
 	export let room: IRoom;
 	$: classesActive = (href: string) =>
 		href === $page.params.roomSlug ? '!bg-primary-500 text-white' : '';
-
+	const cover = generateAvatar(CollectionName.Room, room.id, room.cover);
 	// modal
 	const modalComponent: ModalComponent = {
 		ref: RoomInfo,
@@ -33,7 +33,7 @@
 <li class="my-3">
 	<a href={`${ROOM_PATH}/${room.slug}`} class={'w-full ' + classesActive(room.slug)}>
 		<span class="w-8">
-			<Avatar src="https://source.unsplash.com/1/48x48" width="w-8" />
+			<Avatar src={cover} width="w-8" />
 		</span>
 		<span class="flex-auto whitespace-nowrap overflow-hidden text-ellipsis">{room.name}</span>
 		<button class="w-1" on:click|preventDefault={handleModal}>⋮</button>

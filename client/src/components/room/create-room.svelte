@@ -11,14 +11,16 @@
 	} from '@skeletonlabs/skeleton';
 	import Icon from '../icon.svelte';
 	import type { ClientResponseError } from 'pocketbase';
-	import type { FormResError, IRoom } from '$lib/types';
+	import { convertToSlug } from '$lib/util';
+	import { RoomType, type FormResError, type IRoom } from '$lib/types';
 
 	enum FormFieldKey {
 		RoomName = 'name',
 		RoomSlug = 'slug',
 		RoomDescription = 'description',
 		RoomCover = 'cover',
-		RoomCreatedBy = 'createdBy'
+		RoomCreatedBy = 'createdBy',
+		Type = 'type'
 	}
 	let roomName = '';
 	let isTouched = false;
@@ -48,18 +50,13 @@
 		}
 	};
 	const handleOnBlur = () => (isTouched = true);
-	const convertToSlug = (e: string): string => {
-		return e
-			.toLowerCase()
-			.replace(/ /g, '-')
-			.replace(/[^\w-]+/g, '');
-	};
+
 	const getFullSlug = (value: string) => ROOM_PATH + '/' + convertToSlug(value);
 
 	const CreateRoomFormHandler = async (e: SubmitEvent) => {
 		const form = e.target as HTMLFormElement;
 		const formData = new FormData(form);
-		// const roomSlug = formData.get(FormFieldKey.RoomSlug)?.toString()?.toLowerCase();
+
 		if (!$currentUser) return makeErrObj('unknown', 'Authentication failed, Please sign in.');
 		formData.append(FormFieldKey.RoomCreatedBy, $currentUser.id);
 
@@ -71,11 +68,8 @@
 
 		const roomSlug = convertToSlug(roomName);
 		formData.append(FormFieldKey.RoomSlug, roomSlug);
+		formData.append(FormFieldKey.Type, RoomType.PersonalRoom);
 
-		// const description = formData.get(FormFieldKey.RoomDescription)?.toString();
-		// const cover = formData.get(FormFieldKey.RoomCover)?.toString();
-		// const user = formData.get(FormFieldKey.RoomCreatedBy)?.toString();
-		// // console.log({ roomName, roomSlug, description, cover, user });
 		try {
 			loading = true;
 			const res = await pb.collection('rooms').create<IRoom>(formData);
@@ -97,13 +91,14 @@
 				FormFieldKey.RoomCover,
 				FormFieldKey.RoomCreatedBy
 			];
-			if (e !== undefined)
+			if (e !== undefined && keys.includes((Object.keys(e).pop() || '') as any))
 				for (const key of keys) {
 					if (e[key] !== undefined) {
 						if (e[key].code === 'validation_not_unique') e[key].message = 'Room already exists.';
 						makeErrObj(key, e[key].message);
 					}
 				}
+			else makeErrObj('unknown', 'Failed to create room.');
 		} finally {
 			loading = false;
 		}
@@ -112,6 +107,7 @@
 
 <div class="card p-4 max-w-[400px] mx-auto space-y-4 my-4">
 	<h1 class="h3">Create Room</h1>
+	{#if error?.code == 'unknown'}<p class="text-sm text-error-500">{error.message}</p>{/if}
 	<form class="space-y-2" method="POST" on:submit|preventDefault={CreateRoomFormHandler}>
 		<!-- cover -->
 		<div class="inline-flex gap-2">

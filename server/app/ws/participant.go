@@ -93,7 +93,6 @@ func GetAllParticipants(room *Room) []*Participant {
 	participants := make([]*Participant, 0)
 	for _, p := range room.Participants {
 		participants = append(participants, p)
-		fmt.Println("participants", *p)
 	}
 	return participants
 }

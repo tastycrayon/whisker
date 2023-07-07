@@ -1,7 +1,9 @@
 <script>
-	import { initGoogleAuth } from '$lib/pocketbase';
+	import { currentUser, initGoogleAuth } from '$lib/pocketbase';
 	import { modalStore } from '@skeletonlabs/skeleton';
 	import Icon from './icon.svelte';
+	import { goto } from '$app/navigation';
+	import { PROFILE_PATH, ROOM_PATH } from '$lib/constant';
 </script>
 
 <button
@@ -9,6 +11,7 @@
 	class="btn variant-ringed w-full justify-between"
 	on:click={() => {
 		initGoogleAuth(modalStore.close);
+		if ($currentUser?.id) goto(PROFILE_PATH);
 	}}
 >
 	<span><Icon name="google" fill width="24px" height="24px" /></span>

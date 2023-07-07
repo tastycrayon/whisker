@@ -6,3 +6,10 @@ export const LOGOUT_PATH = '/logout';
 
 export const ROOM_PATH = '/rooms';
 export const PARTICIPANT_PATH = '/participants';
+export const PROFILE_PATH = '/me';
+export const PROFILE_EDIT_PATH = '/editme';
+
+export const DEFAULT_IMAGE = '/default.jpg'
+export const DEFAULT_ROOM = 'career-and-burnout'
+
+export const ROOM_PLACEHOLDER_COUNT = 4

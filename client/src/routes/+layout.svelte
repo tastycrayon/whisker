@@ -17,8 +17,9 @@
 	// import Footer from '../components/footer.svelte';
 </script>
 
-<Toast />
-<Modal />
+<Modal zIndex="z-[888]" />
+<Toast zIndex="z-[999]" />
+
 <AppShell>
 	<svelte:fragment slot="header">
 		<!-- <Navbar {user} /> -->

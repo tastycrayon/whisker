@@ -71,18 +71,21 @@ func (h *Hub) Run() {
 					delete(h.Rooms[participant.RoomSlug].Participants, participant.Id)
 					room.ParticipantMu.Unlock()
 				}
-				// delete room if no one left
-				if room.Type != PublicRoom { // must not be a public room
-					time.AfterFunc(1*time.Hour, func() {
-						if room, doesRoomExist := h.Rooms[participant.RoomSlug]; doesRoomExist {
-							room.ParticipantMu.Lock()
-							if len(room.Participants) == 0 {
-								delete(h.Rooms, participant.RoomSlug)
-							}
-							room.ParticipantMu.Unlock()
-						}
-					})
-				}
+				// // delete room if no one left
+				// if room.Type == PersonalRoom && len(room.Participants) == 0 { // must not be a public room
+				// 	// time.AfterFunc(1*time.Hour, func() {
+				// 	time.AfterFunc(10*time.Second, func() {
+				// 		fmt.Println("hit")
+				// 		if room, doesRoomExist := h.Rooms[participant.RoomSlug]; doesRoomExist {
+				// 			room.ParticipantMu.Lock()
+				// 			if len(room.Participants) == 0 {
+				// 				fmt.Println("hi2")
+				// 				delete(h.Rooms, room.RoomSlug)
+				// 			}
+				// 			room.ParticipantMu.Unlock()
+				// 		}
+				// 	})
+				// }
 			}
 
 		case message := <-h.Broadcast:

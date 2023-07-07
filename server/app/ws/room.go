@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/tastycrayon/go-chat/app/queue"
+	"nhooyr.io/websocket"
 )
 
 type RoomType string
@@ -54,4 +55,14 @@ func NewRoom(roomId, roomSlug, roomName, roomCover, description, createdBy strin
 		LocalMessageQueue: queue.NewCQueue[MessageFeed](128),
 		ParticipantMu:     &sync.Mutex{},
 	}
+}
+
+func (r *Room) Delete(h *Hub) {
+	r.ParticipantMu.Lock()
+	for _, p := range r.Participants {
+		// h.Unregister <- p
+		go p.Conn.Close(websocket.StatusNormalClosure, "room was permanently deleted")
+	}
+	r.ParticipantMu.Unlock()
+	delete(h.Rooms, r.RoomSlug)
 }
