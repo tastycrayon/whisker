@@ -4,3 +4,6 @@
 	--theme-font-family-base: 'Fira Code', monospace;
 	--theme-font-family-heading: 'Fira Code', monospace;
 }
+path.catGlasses {
+	fill: #f690be;
+}

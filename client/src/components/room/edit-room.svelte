@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ROOM_PATH } from '$lib/constant';
+	import { DEFAULT_ROOM, ROOM_PATH } from '$lib/constant';
 	import { currentUser, pb } from '$lib/pocketbase';
 	import {
 		currentRoom,
@@ -109,7 +109,9 @@
 		const confirmDeletion = await firstConfirm();
 		if (!confirmDeletion) return;
 		deleteRoom(room.id);
+		if ($currentRoom === room.slug) $currentRoom = DEFAULT_ROOM;
 		goto(ROOM_PATH);
+		// TODO: reconnect
 		modalStore.close();
 	};
 </script>

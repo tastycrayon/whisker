@@ -10,6 +10,10 @@ export const PROFILE_PATH = '/me';
 export const PROFILE_EDIT_PATH = '/editme';
 
 export const DEFAULT_IMAGE = '/default.jpg'
+export const DEFAULT_OG_IMAGE = '/opengraph.png'
 export const DEFAULT_ROOM = 'career-and-burnout'
 
-export const ROOM_PLACEHOLDER_COUNT = 4
+export const PUBLIC_ROOM_PLACEHOLDER_COUNT = 4
+export const PERSONAL_ROOM_PLACEHOLDER_COUNT = 3
+
+

@@ -7,7 +7,7 @@
 	import { DEFAULT_ROOM, ROOM_PATH } from '$lib/constant';
 	import { currentRoom, messageStore, participantStore, refreshRooms, roomStore } from '$lib/store';
 	import { onDestroy } from 'svelte';
-	import { MessageType, type IMessage, CollectionName } from '$lib/types';
+	import { MessageType, type IRecieveMessage, CollectionName } from '$lib/types';
 	import Icon from '$components/icon.svelte';
 	import { generateAvatar } from '$lib/util';
 	import { goto } from '$app/navigation';
@@ -15,7 +15,7 @@
 	let socket: WebSocket | undefined;
 
 	let elemChat: HTMLElement;
-	let messageFeed: IMessage[] = [];
+	let messageFeed: IRecieveMessage[] = [];
 	let currentMessage = '';
 	let timer: number;
 	$: if ($page.params.roomSlug !== $currentRoom) currentRoom.set($page.params.roomSlug);
@@ -59,7 +59,7 @@
 		};
 		// Listen for messages
 		socket.onmessage = (event) => {
-			const m = JSON.parse(event.data) as IMessage;
+			const m = JSON.parse(event.data) as IRecieveMessage;
 			switch (m.messageType) {
 				case MessageType.Swap:
 					break;
@@ -110,7 +110,7 @@
 		currentMessage = '';
 	};
 
-	messageStore.subscribe((m: IMessage | null) => {
+	messageStore.subscribe((m: IRecieveMessage | null) => {
 		if (!m) return;
 		messageFeed = [...messageFeed, m];
 		messageStore.set(null);

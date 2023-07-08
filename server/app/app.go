@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
@@ -36,7 +35,7 @@ func Run() {
 	// load default rooms end
 	pb.OnRecordsListRequest().Add(func(e *core.RecordsListEvent) error {
 		if e.Collection.Name == "rooms" {
-			time.Sleep(time.Second * 2)
+			// time.Sleep(time.Second * 2)
 			fmt.Println("rrom")
 		}
 		return nil

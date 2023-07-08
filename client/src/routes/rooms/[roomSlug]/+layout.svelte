@@ -11,9 +11,9 @@
 
 	$: if (!$currentUser) goto(LOGIN_PATH);
 
-	onMount(async () => {
-		if ($roomStore.data.length === 0) refreshRooms();
-	});
+	// onMount(async () => {
+	// 	if ($roomStore.data.length === 0) refreshRooms();
+	// });
 </script>
 
 <section class="card h-full">

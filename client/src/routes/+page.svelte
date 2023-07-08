@@ -1,18 +1,11 @@
 <script lang="ts">
-	import { COOKIE_OPTIONS, ROOM_PATH } from '$lib/constant';
-	import { currentUser, pb } from '$lib/pocketbase';
-	import { json } from '@sveltejs/kit';
-	import type { SendOptions } from 'pocketbase';
-	import type { IRoom } from '$lib/types';
-	import { onMount } from 'svelte';
+	import { ROOM_PATH } from '$lib/constant';
+	import { currentUser } from '$lib/pocketbase';
 	import { modalStore, type ModalComponent, type ModalSettings } from '@skeletonlabs/skeleton';
-	import Login from '$components/login.svelte';
-	import Rooms from '$components/room/rooms.svelte';
 	import AuthProviders from '$components/auth-providers.svelte';
 	import Icon from '$components/icon.svelte';
 	import Typewriter from '$components/typewriter.svelte';
-	import { currentRoom } from '$lib/store';
-	import { goto } from '$app/navigation';
+	import Head from '$components/head.svelte';
 
 	const modalComponent: ModalComponent = {
 		// Pass a reference to your custom component
@@ -33,6 +26,8 @@
 	// $: if ($currentUser && $currentRoom) goto(ROOM_PATH + '/' + $currentRoom);
 </script>
 
+<Head />
+
 <div class="container mx-auto flex justify-center items-center flex-auto h-full">
 	<div class="p-4 max-w-[640px] space-y-3">
 		<div class="inline-flex items-center">
@@ -42,7 +37,7 @@
 					>Chat</span
 				>
 			</h1>
-			<Icon name="cat" class="text-purple-600" width="72px" height="72px" />
+			<Icon name="cat" class="text-purple-600 ml-2" width="72px" height="72px" />
 		</div>
 		<p class="font-thin">
 			Revitalize your passion. <Typewriter slogans={['Connect.', 'Heal.', 'Code.']} />
@@ -50,11 +45,12 @@
 
 		<br />
 		<p>
-			Introducing "CodeHeal," a revolutionary chat app designed exclusively for programmers who are
-			battling burnout and depression. We understand the unique challenges and pressures that come
-			with a career in programming, and we're here to support you on your journey to recovery and
-			well-being. CodeHeal provides a safe, judgment-free space where programmers can connect with
-			like-minded individuals, share their experiences, and find solace in a supportive community.
+			Introducing "WhiskerChat," a revolutionary chat app designed exclusively for programmers who
+			are battling burnout and depression. We understand the unique challenges and pressures that
+			come with a career in programming, and we're here to support you on your journey to recovery
+			and well-being. WhiskerChat provides a safe, judgment-free space where programmers can connect
+			with like-minded individuals, share their experiences, and find solace in a supportive
+			community.
 		</p>
 		{#if !$currentUser}
 			<button type="button" class="btn variant-ghost-primary m-0" on:click={handleModal}>

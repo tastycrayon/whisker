@@ -13,6 +13,7 @@ import (
 
 func JoinRoom(h *ws.Hub) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		fmt.Println("hittt")
 		r, w := c.Request(), c.Response()
 
 		roomSlug := c.PathParam("roomSlug")

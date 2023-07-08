@@ -1,12 +1,12 @@
 import { writable, type Writable } from 'svelte/store';
 import { DEFAULT_ROOM, PARTICIPANT_PATH, ROOM_PATH } from './constant';
 import { page } from '$app/stores';
-import { type IMessage, type IRoom, type IParticipant, type ResponseData, CollectionName } from './types';
+import { type IRecieveMessage, type IRoom, type IParticipant, type ResponseData, CollectionName } from './types';
 import { pb } from './pocketbase';
 import { toastStore, type ToastSettings, localStorageStore } from '@skeletonlabs/skeleton';
 import type { ClientResponseError } from 'pocketbase';
 
-export const messageStore = writable<IMessage | null>(null);
+export const messageStore = writable<IRecieveMessage | null>(null);
 
 export default {
 	subscribe: messageStore.subscribe

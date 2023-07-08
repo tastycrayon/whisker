@@ -46,7 +46,7 @@ interface PingType {
 interface HistoryType {
 	sid: string;
 	messageType: MessageType.History;
-	content: IMessage[]
+	content: IRecieveMessage[]
 	sender: IParticipant;
 	roomSlug: string;
 	created: string;
@@ -59,8 +59,14 @@ interface NormalType {
 	roomSlug: string;
 	created: string;
 }
+export interface ISendMessage {
+	content: string;
+	from: string;
+	to: string
+	messageType: MessageType
+}
+export type IRecieveMessage = PingType | HistoryType | NormalType
 
-export type IMessage = PingType | HistoryType | NormalType
 export interface IParticipant {
 	id: string;
 	username: string;
