@@ -1,10 +1,7 @@
 package app
 
 import (
-	"embed"
 	"encoding/json"
-	"io/fs"
-	"net/http"
 	"net/url"
 
 	"github.com/labstack/echo/v5"
@@ -53,17 +50,11 @@ func CustomAuthMiddleware(app core.App) echo.MiddlewareFunc {
 	}
 }
 
-func InitRoutes(pb *pocketbase.PocketBase, e *core.ServeEvent, hub *ws.Hub, embeddedFiles embed.FS) {
-	fsys, err := fs.Sub(embeddedFiles, "build")
-	if err != nil {
-		panic(err)
-	}
-
-	fileHandler := echo.WrapHandler(http.FileServer(http.FS(fsys)))
+func InitRoutes(pb *pocketbase.PocketBase, e *core.ServeEvent, hub *ws.Hub) {
 	// static
-	e.Router.GET("/", fileHandler)
-	e.Router.GET("/rooms", fileHandler)
-	e.Router.GET("/rooms/:slug", fileHandler)
+	e.Router.Static("/", "build")
+	e.Router.File("/rooms", "build/index.html")
+	e.Router.File("/rooms/:slug", "build/index.html")
 	// rooms
 	var roomGroup *echo.Group = e.Router.Group("/ws/rooms")
 

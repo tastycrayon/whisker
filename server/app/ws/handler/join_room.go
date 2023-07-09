@@ -24,7 +24,7 @@ func JoinRoom(h *ws.Hub) echo.HandlerFunc {
 		authRecord, _ := c.Get(apis.ContextAuthRecordKey).(*models.Record)
 
 		opts := &websocket.AcceptOptions{
-			OriginPatterns: []string{"localhost:5173"},
+			OriginPatterns: []string{"127.0.0.1:5173", "127.0.0.1:8090", "127.0.0.1:8080", "127.0.0.1:80"},
 		}
 
 		conn, err := websocket.Accept(w, r, opts)

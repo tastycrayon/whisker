@@ -1,7 +1,6 @@
 package app
 
 import (
-	"embed"
 	"fmt"
 	"log"
 	"net/http"
@@ -14,7 +13,7 @@ import (
 	"github.com/tastycrayon/go-chat/app/ws"
 )
 
-func Run(embeddedFiles embed.FS) {
+func Run() {
 
 	pb := pocketbase.New()
 
@@ -65,7 +64,7 @@ func Run(embeddedFiles embed.FS) {
 			hub.Rooms[slug] = ws.NewRoom(id, slug, name, cover, description, createdBy, created, roomType)
 		}
 
-		InitRoutes(pb, e, hub, embeddedFiles)
+		InitRoutes(pb, e, hub)
 		return nil
 	})
 
