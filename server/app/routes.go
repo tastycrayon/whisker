@@ -70,7 +70,7 @@ func InitRoutes(pb *pocketbase.PocketBase, e *core.ServeEvent, hub *ws.Hub) {
 	roomGroup.GET("", handler.GetAvailableRooms(hub))
 
 	// participants
-	var participantGroup *echo.Group = e.Router.Group("/participants")
+	var participantGroup *echo.Group = e.Router.Group("/ws/participants")
 	participantGroup.GET("",
 		handler.GetParticipantsByRoom(hub),
 		CustomAuthMiddleware(pb),

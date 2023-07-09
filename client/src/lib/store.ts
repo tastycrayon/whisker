@@ -88,3 +88,9 @@ export const refreshSingleParticipant = async (userId: string) => {
 
 // user detail
 export const currentRoom: Writable<string> = localStorageStore('currentRoom', DEFAULT_ROOM);
+interface UserPreference {
+	lightMode: boolean
+	hideWelcomeMessage: boolean
+}
+const defaultPreference: UserPreference = { lightMode: true, hideWelcomeMessage: true }
+export const userPreference: Writable<UserPreference> = localStorageStore('userPreference', defaultPreference);

@@ -1,11 +1,15 @@
 import { PUBLIC_WEBSOCKET_URL } from "$env/static/public";
-import type { Unsubscriber, Writable } from "svelte/store";
+import { writable, type Unsubscriber, } from "svelte/store";
 import { ROOM_PATH } from "./constant";
 import { currentRoom } from "./store";
-import type { ISendMessage } from "./types";
+import type { IRecieveMessage, ISendMessage } from "./types";
 
-
-export const WebSocketStore = (reader: Writable<string | null>, writer: Writable<ISendMessage | null>) => {
+// writer writes to websocket (send messages)
+// reader reads from websocket
+export const reader = writable<IRecieveMessage | null>(null);
+export const writer = writable<ISendMessage | null>(null);
+// reader: Writable<IRecieveMessage | null>, writer: Writable<ISendMessage | null>
+export const WebSocketStore = () => {
     const reopenTimeouts = [2000, 5000, 10000, 30000, 60000];
     let retryCount = 0, timer: number | undefined;
     function retryTimeout() {
@@ -20,6 +24,7 @@ export const WebSocketStore = (reader: Writable<string | null>, writer: Writable
     function close() {
         if (timer) clearTimeout(timer);
         if (!socket) return
+        console.log("about to close")
         socket.close();
         socket = undefined;
         if (unsubscribeWriter) unsubscribeWriter()
@@ -40,6 +45,7 @@ export const WebSocketStore = (reader: Writable<string | null>, writer: Writable
             // writer writes to websocket (send messages)
             unsubscribeWriter = writer.subscribe((m: ISendMessage | null) => {
                 if (!m || !socket || socket.readyState !== WebSocket.OPEN) return
+                console.log("write")
                 socket.send(JSON.stringify(m));
                 writer.set(null)
             });
@@ -50,20 +56,22 @@ export const WebSocketStore = (reader: Writable<string | null>, writer: Writable
             };
             socket.onerror = (err) => reject(err);
             socket.onclose = () => reopen()
-            socket.onmessage = (event) => reader.set(event.data)
+            socket.onmessage = (event) => {
+                console.log("read")
+                reader.set(JSON.parse(event.data) as IRecieveMessage)
+            }
         });
     }
 
     async function connect() {
         if (timer) clearTimeout(timer)
         timer = undefined;
-
         if (openPromise) return openPromise
         openPromise = open()
         return openPromise
     }
     return {
-        connect, open, reopen, socket
+        connect, open, reopen, close, socket
     }
 }
 

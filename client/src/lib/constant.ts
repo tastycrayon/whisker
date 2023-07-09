@@ -5,7 +5,7 @@ export const REGISTER_PATH = '/register';
 export const LOGOUT_PATH = '/logout';
 
 export const ROOM_PATH = '/rooms';
-export const PARTICIPANT_PATH = '/participants';
+export const PARTICIPANT_PATH = '/ws/participants';
 export const PROFILE_PATH = '/me';
 export const PROFILE_EDIT_PATH = '/editme';
 

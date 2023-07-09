@@ -2,8 +2,8 @@ package ws
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"nhooyr.io/websocket"
@@ -20,21 +20,36 @@ type Participant struct {
 	CloseSlow func()            `json:"-"`
 }
 
+func NewParticipant(h *Hub, conn *websocket.Conn, id, username, slug, avatar string) *Participant {
+	return &Participant{
+		Conn:     conn,
+		Id:       id,
+		Username: username,
+		Avatar:   avatar,
+		RoomSlug: slug,
+		Message:  make(chan *MessageFeed, h.SubscriberMessageBuffer),
+		CloseSlow: func() {
+			conn.Close(websocket.StatusPolicyViolation, "connection too slow to keep up with messages")
+		},
+	}
+}
+
 // from webscoket Connections to Hub
 func (p *Participant) ReadMessage(h *Hub, ctx context.Context) {
 	defer func() {
 		// send participant to unregister and disconnect him | will run on error(such as disconnect)
 		h.Unregister <- p // when participant is not receiving messages
 		close(p.Message)  // chan - stop receiving messages
+		fmt.Println("at reader: close(p.Message)")
 		p.Conn.Close(websocket.StatusNormalClosure, "either participant disconnected or message read failed")
-
+		ctx.Done() // TODO
 	}()
 
 	for {
 		var m MessageReq
 		if err := wsjson.Read(ctx, p.Conn, &m); err != nil {
 			fmt.Println("failed at message reader", err)
-			if strings.Contains(err.Error(), "websocket: close") {
+			if errors.Is(err, websocket.CloseError{}) {
 				fmt.Println("closing connection for websocket")
 			}
 			break
@@ -65,16 +80,19 @@ func (p *Participant) ReadMessage(h *Hub, ctx context.Context) {
 }
 
 // from Hub to websocket Connection
-func (c *Participant) WriteMessage(ctx context.Context) error {
+func (p *Participant) WriteMessage(ctx context.Context) error {
 	defer func() {
 		fmt.Println("Connection was closed")
+		ctx.Done()
+		fmt.Println("at writer: ctx.Done()")
 	}()
 	for {
 		select {
-		case message := <-c.Message:
-			err := writeTimeout(ctx, time.Second*5, c.Conn, message)
+		case message := <-p.Message:
+			err := writeTimeout(ctx, time.Second*3, p.Conn, message)
 			if err != nil {
-				fmt.Println("er", err)
+				fmt.Println("error at writer", err)
+				go p.CloseSlow()
 				return err
 			}
 		case <-ctx.Done():
@@ -83,10 +101,10 @@ func (c *Participant) WriteMessage(ctx context.Context) error {
 	}
 }
 
-func (c *Participant) WriteCustomMessage(m interface{}) {
+func (p *Participant) WriteCustomMessage(m interface{}) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
-	wsjson.Write(ctx, c.Conn, m)
+	wsjson.Write(ctx, p.Conn, m)
 }
 
 func GetAllParticipants(room *Room) []*Participant {

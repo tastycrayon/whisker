@@ -13,7 +13,6 @@ import (
 
 func JoinRoom(h *ws.Hub) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		fmt.Println("hittt")
 		r, w := c.Request(), c.Response()
 
 		roomSlug := c.PathParam("roomSlug")
@@ -37,17 +36,7 @@ func JoinRoom(h *ws.Hub) echo.HandlerFunc {
 		participantId := authRecord.Id
 		username := authRecord.Username()
 
-		participant := &ws.Participant{
-			Conn:     conn,
-			Id:       participantId,
-			Username: username,
-			Avatar:   avatar,
-			RoomSlug: roomSlug,
-			Message:  make(chan *ws.MessageFeed, h.SubscriberMessageBuffer),
-			CloseSlow: func() {
-				conn.Close(websocket.StatusPolicyViolation, "connection too slow to keep up with messages")
-			},
-		}
+		participant := ws.NewParticipant(h, conn, participantId, username, roomSlug, avatar)
 		h.Register <- participant
 
 		// be ready to write new messages to this user

@@ -1,19 +1,26 @@
 <script>
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import Rooms from '$components/room/rooms.svelte';
+	import Typewriter from '$components/typewriter.svelte';
 	import { DEFAULT_IMAGE, LOGIN_PATH, PROFILE_PATH } from '$lib/constant';
 	import { currentUser } from '$lib/pocketbase';
-	import { refreshRooms, roomStore } from '$lib/store';
+	import { WebSocketStore } from '$lib/socketStore';
+	import { currentRoom, refreshRooms, roomStore } from '$lib/store';
 	import { CollectionName } from '$lib/types';
 	import { generateAvatar } from '$lib/util';
-	import { Avatar, LightSwitch } from '@skeletonlabs/skeleton';
+	import { Avatar, LightSwitch, ProgressRadial } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 
 	$: if (!$currentUser) goto(LOGIN_PATH);
-
-	// onMount(async () => {
-	// 	if ($roomStore.data.length === 0) refreshRooms();
-	// });
+	const { connect, open, reopen, close, socket } = WebSocketStore();
+	let loading = true;
+	onMount(async () => {
+		// if ($roomStore.data.length === 0) refreshRooms();
+		await connect();
+		loading = false;
+		currentRoom.set($page.params.roomSlug);
+	});
 </script>
 
 <section class="card h-full">
@@ -28,9 +35,19 @@
 			</header>
 			<Rooms />
 			<!-- Footer -->
-			<footer class="border-t border-surface-500/30 p-4">
+			<footer class="border-t border-surface-500/30 space-y-2">
+				{#if loading}
+					<div>
+						<aside class="w-full inline-flex gap-2 items-center justify-between px-4">
+							<small>Connecting <Typewriter slogans={['.', '..', '...']} /></small>
+							<p><ProgressRadial width="w-3" /></p>
+						</aside>
+						<hr />
+					</div>
+				{/if}
+
 				{#if $currentUser}
-					<div class="w-full inline-flex gap-2 items-center">
+					<div class="w-full inline-flex gap-2 items-center px-4 py-2">
 						<span class="w-8">
 							<a href={PROFILE_PATH}>
 								<Avatar

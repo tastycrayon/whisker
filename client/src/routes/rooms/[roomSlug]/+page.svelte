@@ -7,118 +7,90 @@
 	import { DEFAULT_ROOM, ROOM_PATH } from '$lib/constant';
 	import { currentRoom, messageStore, participantStore, refreshRooms, roomStore } from '$lib/store';
 	import { onDestroy } from 'svelte';
-	import { MessageType, type IRecieveMessage, CollectionName } from '$lib/types';
+	import { MessageType, type IRecieveMessage, CollectionName, type ISendMessage } from '$lib/types';
 	import Icon from '$components/icon.svelte';
 	import { generateAvatar } from '$lib/util';
 	import { goto } from '$app/navigation';
-
-	let socket: WebSocket | undefined;
+	import { writable } from 'svelte/store';
+	import { WebSocketStore, reader, writer } from '$lib/socketStore';
 
 	let elemChat: HTMLElement;
 	let messageFeed: IRecieveMessage[] = [];
 	let currentMessage = '';
-	let timer: number;
-	$: if ($page.params.roomSlug !== $currentRoom) currentRoom.set($page.params.roomSlug);
+
+	// $: if ($page.params.roomSlug !== $currentRoom) currentRoom.set($page.params.roomSlug);
 
 	const roomSwitcher = (): boolean => {
 		if (!$navigating) return false;
 		const { from, to } = $navigating;
 		if (!from?.params || !to?.params || !from.route || !to.route) return false;
 		if (from.params.roomSlug == to.params.roomSlug || !(from.route.id == to.route.id)) return false;
-		if (socket) {
-			socket.send(
-				JSON.stringify({
-					content: '',
-					from: from.params.roomSlug,
-					to: to.params.roomSlug,
-					messageType: MessageType.Swap
-				})
-			);
-			currentRoom.set(to.params.roomSlug);
-			return true;
-		}
-		return false;
+		const m = {
+			content: '',
+			from: from.params.roomSlug,
+			to: to.params.roomSlug,
+			messageType: MessageType.Swap
+		};
+		writer.set(m);
+		writer.set(null);
+		currentRoom.set(to.params.roomSlug);
+		return true;
 	};
-	currentRoom.subscribe(() => {});
+
 	$: if ($navigating) {
 		roomSwitcher();
 		setTimeout(() => {
 			scrollChatBottom('smooth');
 		}, 0);
 	}
-	const openConn = () => {
-		if (socket) return;
-		socket = new WebSocket(`${PUBLIC_WEBSOCKET_URL}${ROOM_PATH}/${$currentRoom}`);
-	};
-	onMount(() => {
-		openConn();
-		if (!socket) return;
-		// Connection opened
-		socket.onopen = (event) => {
-			console.log("It's open");
-		};
-		// Listen for messages
-		socket.onmessage = (event) => {
-			const m = JSON.parse(event.data) as IRecieveMessage;
-			switch (m.messageType) {
-				case MessageType.Swap:
-					break;
-				case MessageType.Text:
-					messageStore.set(m);
-					break;
-				case MessageType.Welcome:
-					messageStore.set(m);
-					break;
-				case MessageType.Bailout:
-					messageStore.set(m);
-					break;
-				case MessageType.Ping:
-					console.log({ ping: m });
-					if (Array.isArray(m.content)) participantStore.update((s) => ({ ...s, data: m.content }));
-					break;
-				case MessageType.History:
-					messageFeed = [];
-					if (Array.isArray(m.content)) m.content.forEach((e) => messageStore.set(e));
-					break;
-				default:
-					messageStore.set(m);
-					break;
-			}
-		};
-		socket.onerror = async (event) => {
-			console.log('err');
-		};
-		socket.onclose = (event) => {
-			console.log('closed');
-			if (timer) clearTimeout(timer);
-			timer = setTimeout(async () => {
-				await refreshRooms();
-				const currentRoom = $roomStore.data.find((e) => e.slug === $page.params.roomSlug);
-				if (!currentRoom) goto(ROOM_PATH + '/' + DEFAULT_ROOM);
-			}, 1000);
-		};
-	});
-	onDestroy(() => {
-		if (socket) socket.close();
-		if (timer) clearTimeout(timer);
-	});
 
-	const sendMessage = (): void => {
-		if (socket && socket.readyState <= 1) {
-			socket.send(JSON.stringify({ content: currentMessage, messageType: MessageType.Text }));
-		}
+	const { connect, close, socket } = WebSocketStore();
+	const sendMessage = () => {
+		if (currentMessage === '') return;
+		const m: ISendMessage = {
+			content: currentMessage,
+			messageType: MessageType.Text,
+			from: '',
+			to: ''
+		};
+		writer.set(m);
 		currentMessage = '';
 	};
-
-	messageStore.subscribe((m: IRecieveMessage | null) => {
+	reader.subscribe((m) => {
 		if (!m) return;
-		messageFeed = [...messageFeed, m];
-		messageStore.set(null);
+		// console.log({ message: m });
+		switch (m.messageType) {
+			case MessageType.Swap:
+				break;
+			case MessageType.Text:
+				messageFeed = [...messageFeed, m];
+				break;
+			case MessageType.Welcome:
+				messageFeed = [...messageFeed, m];
+				break;
+			case MessageType.Bailout:
+				messageFeed = [...messageFeed, m];
+				break;
+			case MessageType.Ping:
+				if (Array.isArray(m.content)) participantStore.update((s) => ({ ...s, data: m.content }));
+				break;
+			case MessageType.History:
+				messageFeed = [];
+				if (Array.isArray(m.content)) m.content.forEach((e) => (messageFeed = [...messageFeed, e]));
+				break;
+			default:
+				console.error('unknown message type');
+				break;
+		}
+		reader.set(null);
 		setTimeout(() => {
 			scrollChatBottom('smooth');
 		}, 0);
 	});
-
+	onMount(() => {
+		scrollChatBottom();
+	});
+	// end
 	function scrollChatBottom(behavior?: ScrollBehavior): void {
 		if (elemChat) elemChat.scrollTo({ top: elemChat.scrollHeight, behavior });
 	}
@@ -130,10 +102,19 @@
 		}
 	}
 	// When DOM mounted, scroll to bottom
-	onMount(() => {
-		scrollChatBottom();
+	onDestroy(() => {
+		close();
 	});
-	$: messageList = messageFeed.filter((e) => e.roomSlug == $page.params.roomSlug);
+	$: messageList = messageFeed
+		.filter((e) => e.roomSlug == $page.params.roomSlug)
+		.sort((a, b) => (a.sid > b.sid ? 1 : -1));
+	// $: console.log({
+	// 	mmmm: $messageStore,
+	// 	feed: messageFeed,
+	// 	list: messageList,
+
+	// 	x: $page.params.roomSlug
+	// });
 </script>
 
 <!-- Chat -->

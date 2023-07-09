@@ -36,6 +36,6 @@
 			<Avatar src={cover} width="w-8" />
 		</span>
 		<span class="flex-auto whitespace-nowrap overflow-hidden text-ellipsis">{room.name}</span>
-		<button class="w-1" on:click|preventDefault={handleModal}>⋮</button>
+		<button class="btn-icon btn-icon-sm w-1" on:click|preventDefault={handleModal}>⋮</button>
 	</a>
 </li>
