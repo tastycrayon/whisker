@@ -40,5 +40,8 @@
 	"type": "module",
 	"dependencies": {
 		"pocketbase": "^0.15.2"
-	}
+	},
+	"engines": {
+		"node": ">=20"
+	  }
 }
