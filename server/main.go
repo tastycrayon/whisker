@@ -1,11 +1,14 @@
 package main
 
 import (
+	"embed"
+
 	"github.com/tastycrayon/go-chat/app"
 )
 
-const MaximumMessageQueueSize = 128
+//go:embed build
+var embeddedFiles embed.FS
 
 func main() {
-	app.Run()
+	app.Run(embeddedFiles)
 }

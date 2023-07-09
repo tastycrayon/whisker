@@ -1,6 +1,7 @@
 package app
 
 import (
+	"embed"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,7 +14,8 @@ import (
 	"github.com/tastycrayon/go-chat/app/ws"
 )
 
-func Run() {
+func Run(embeddedFiles embed.FS) {
+
 	pb := pocketbase.New()
 
 	// migration
@@ -33,13 +35,13 @@ func Run() {
 	// }
 	go hub.Run()
 	// load default rooms end
-	pb.OnRecordsListRequest().Add(func(e *core.RecordsListEvent) error {
-		if e.Collection.Name == "rooms" {
-			// time.Sleep(time.Second * 2)
-			fmt.Println("rrom")
-		}
-		return nil
-	})
+	// pb.OnRecordsListRequest().Add(func(e *core.RecordsListEvent) error {
+	// 	if e.Collection.Name == "rooms" {
+	// 		// time.Sleep(time.Second * 2)
+	// 		fmt.Println("rrom")
+	// 	}
+	// 	return nil
+	// })
 	pb.OnBeforeServe().Add(func(e *core.ServeEvent) error {
 		records, err := pb.Dao().FindRecordsByExpr("rooms")
 		if err != nil {
@@ -63,7 +65,7 @@ func Run() {
 			hub.Rooms[slug] = ws.NewRoom(id, slug, name, cover, description, createdBy, created, roomType)
 		}
 
-		InitRoutes(pb, e, hub)
+		InitRoutes(pb, e, hub, embeddedFiles)
 		return nil
 	})
 
