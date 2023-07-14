@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import DarkMode from '$components/dark-mode.svelte';
 	import Head from '$components/head.svelte';
 	import Icon from '$components/icon.svelte';
 	import Rooms from '$components/room/rooms.svelte';
@@ -34,6 +35,7 @@
 			</svelte:fragment>
 			<a href={ROOM_PATH + '/' + $currentRoom}>Go to {currentRoomTitle}</a>
 			<svelte:fragment slot="trail">
+				<DarkMode />
 				<a class="btn-icon btn-icon-sm variant-soft" href={PROFILE_PATH} title="Profile">
 					<Icon name="user" width="18px" height="18px" />
 				</a>

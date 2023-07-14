@@ -6,12 +6,16 @@
 		type ModalSettings
 	} from '@skeletonlabs/skeleton';
 	import CreateRoom from './create-room.svelte';
-	import { onMount } from 'svelte';
 	import { refreshRooms, roomStore } from '$lib/store';
 	import Icon from '../icon.svelte';
 	import { RoomType } from '$lib/types';
 	import RoomItem from './roomlist-item.svelte';
-	import { PERSONAL_ROOM_PLACEHOLDER_COUNT, PUBLIC_ROOM_PLACEHOLDER_COUNT } from '$lib/constant';
+	import {
+		PERSONAL_ROOM_PLACEHOLDER_COUNT,
+		PUBLIC_ROOM_PLACEHOLDER_COUNT,
+		ROOM_PATH
+	} from '$lib/constant';
+	import { page } from '$app/stores';
 
 	// modal
 	const modalComponent: ModalComponent = {
@@ -38,10 +42,17 @@
 <div class="p-4 space-y-4 overflow-y-auto">
 	<nav class="list-nav">
 		<div class="w-full inline-flex justify-between items-center pb-2">
-			<button class="btn btn-sm variant-ghost-surface" on:click={handleModal}>
-				<span><Icon name="chat" width="16px" height="16px" /></span>
-				<span>Create Room</span>
-			</button>
+			<div class="space-x-2 inline-flex">
+				{#if $page.url.pathname != ROOM_PATH}
+					<a class="btn-icon btn-icon-sm variant-soft" href={ROOM_PATH}>
+						<span><Icon name="arrow-left" width="16px" height="16px" /></span>
+					</a>
+				{/if}
+				<button class="btn btn-sm variant-ghost-surface" on:click={handleModal}>
+					<span><Icon name="chat" width="16px" height="16px" /></span>
+					<span>Create Room</span>
+				</button>
+			</div>
 			<button
 				class="btn-icon btn-icon-sm variant-soft"
 				disabled={$roomStore.loading}

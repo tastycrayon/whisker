@@ -1,20 +1,19 @@
 <script lang="ts">
-	import { modeCurrent, setModeCurrent } from '@skeletonlabs/skeleton';
+	import { modeUserPrefers, setModeUserPrefers } from '@skeletonlabs/skeleton';
 	import Icon from './icon.svelte';
 </script>
 
-<!-- <LightSwitch bgDark="bg-neutral-900/90" /> -->
-{#if $modeCurrent}
+{#if $modeUserPrefers}
 	<button
 		class="btn-icon btn-icon-sm variant-soft rounded-full"
-		on:click={() => setModeCurrent(false)}
+		on:click={() => setModeUserPrefers(false)}
 	>
 		<Icon name="sun" width="16px" height="16px" />
 	</button>
 {:else}
 	<button
 		class="btn-icon btn-icon-sm variant-soft rounded-full"
-		on:click={() => setModeCurrent(true)}
+		on:click={() => setModeUserPrefers(true)}
 	>
 		<Icon name="moon" width="16px" height="16px" />
 	</button>

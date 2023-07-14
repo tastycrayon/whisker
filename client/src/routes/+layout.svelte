@@ -12,29 +12,43 @@
 	import '../style/style.css';
 	import {
 		AppShell,
+		Drawer,
 		Modal,
 		Toast,
+		drawerStore,
 		getModeOsPrefers,
+		modeUserPrefers,
 		setInitialClassState,
 		setModeCurrent
 	} from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
+	import Sidebar from '$components/sidebar.svelte';
+	import Footer from '$components/footer.svelte';
 
 	// Lifecycle
 	onMount(() => {
 		// Sync lightswitch with the theme
-		if (!('modeCurrent' in localStorage)) {
+		if (!('modeUserPrefers' in localStorage)) {
 			setModeCurrent(getModeOsPrefers());
 		}
+	});
+	modeUserPrefers.subscribe((value) => {
+		setModeCurrent(!!value);
 	});
 </script>
 
 <svelte:head
 	>{@html `<\u{73}cript nonce="%sveltekit.nonce%">(${setInitialClassState.toString()})();</script>`}</svelte:head
 >
-
 <Modal zIndex="z-[888]" />
 <Toast zIndex="z-[999]" />
+<Drawer zIndex="z-[50]">
+	{#if $drawerStore.id === 'phone-sidebar'}
+		<Footer />
+		<hr />
+		<Sidebar />
+	{/if}
+</Drawer>
 <AppShell>
 	<svelte:fragment slot="header">
 		<!-- <Navbar {user} /> -->

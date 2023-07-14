@@ -64,7 +64,7 @@
 </script>
 
 <div class="card p-4 max-w-[400px] mx-auto space-y-4 my-4">
-	<h1 class="h1">SIGN IN</h1>
+	<h1 class="h3 font-bold">Sign In</h1>
 
 	{#if errors.length && errors[0].key == 'unknown'}<p class="text-error-500">
 			{errors[0].message}

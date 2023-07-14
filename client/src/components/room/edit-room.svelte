@@ -103,12 +103,17 @@
 			loading = false;
 		}
 	};
-	let { loading: roomLoading, error: roomStoreError, data } = $roomStore;
+	let deleteLoading = false;
 	const handleDelete = async () => {
+		deleteLoading = true;
 		modalStore.clear();
 		const confirmDeletion = await firstConfirm();
-		if (!confirmDeletion) return;
-		deleteRoom(room.id);
+		if (!confirmDeletion) {
+			deleteLoading = false;
+			return;
+		}
+		await deleteRoom(room.id);
+		deleteLoading = false;
 		if ($currentRoom === room.slug) $currentRoom = DEFAULT_ROOM;
 		goto(ROOM_PATH);
 		// TODO: reconnect
@@ -171,7 +176,7 @@
 			class="btn btn-sm variant-ghost-error"
 			type="button"
 			on:click={handleDelete}
-			disabled={roomLoading}>DELETE</button
+			disabled={deleteLoading}>DELETE</button
 		>
 	</div>
 </form>

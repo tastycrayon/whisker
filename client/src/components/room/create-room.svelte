@@ -106,7 +106,7 @@
 </script>
 
 <div class="card p-4 max-w-[400px] mx-auto space-y-4 my-4">
-	<h1 class="h3">Create Room</h1>
+	<h1 class="h3 font-bold">Create Room</h1>
 	{#if error?.code == 'unknown'}<p class="text-sm text-error-500">{error.message}</p>{/if}
 	<form class="space-y-2" method="POST" on:submit|preventDefault={CreateRoomFormHandler}>
 		<!-- cover -->

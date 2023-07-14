@@ -8,9 +8,10 @@ const config = {
 	// Consult https://kit.svelte.dev/docs/integrations#preprocessors
 	// for more information about preprocessors
 	preprocess: [
-		vitePreprocess(),
+		// vitePreprocess({
+		// 	postcss: true
+		// })
 		preprocess({
-			preserve: ['ld+javascript'],
 			postcss: true
 		})
 	],
