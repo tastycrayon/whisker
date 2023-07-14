@@ -43,7 +43,6 @@
 			modalStore.close();
 			if (token) invalidateAll();
 		} catch (err) {
-			console.log('Error: ', err);
 			// in case of user, avoid showing actual error to prevent fishing of information
 			errors = [...errors, makeErrObj('Incorrect credentials!', 'unknown')];
 		}

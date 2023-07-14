@@ -1,21 +1,30 @@
 <script lang="ts">
 	import Message from '$components/message.svelte';
 	import { onMount } from 'svelte';
-	import { page, navigating } from '$app/stores';
+	import { navigating } from '$app/stores';
 	import { currentUser } from '$lib/pocketbase';
-	import { PUBLIC_WEBSOCKET_URL } from '$env/static/public';
-	import { DEFAULT_ROOM, ROOM_PATH } from '$lib/constant';
-	import { currentRoom, messageStore, participantStore, refreshRooms, roomStore } from '$lib/store';
-	import { onDestroy } from 'svelte';
-	import { MessageType, type IRecieveMessage, CollectionName, type ISendMessage } from '$lib/types';
+	import { currentRoom, participantStore } from '$lib/store';
+	import {
+		CollectionName,
+		type SendEvent,
+		type SwapMessage,
+		EventType,
+		type TextMessage
+	} from '$lib/types';
 	import Icon from '$components/icon.svelte';
 	import { generateAvatar } from '$lib/util';
-	import { goto } from '$app/navigation';
-	import { writable } from 'svelte/store';
-	import { WebSocketStore, reader, writer } from '$lib/socketStore';
+	import { reader, writer } from '$lib/socketStore';
+	import { modalStore, type ModalSettings } from '@skeletonlabs/skeleton';
+
+	const modal: ModalSettings = {
+		type: 'alert',
+		title: 'Under Construction',
+		body: 'This functionality is still under developement',
+		response: (r: boolean) => {}
+	};
 
 	let elemChat: HTMLElement;
-	let messageFeed: IRecieveMessage[] = [];
+	let messageFeed: TextMessage[] = [];
 	let currentMessage = '';
 
 	// $: if ($page.params.roomSlug !== $currentRoom) currentRoom.set($page.params.roomSlug);
@@ -25,13 +34,11 @@
 		const { from, to } = $navigating;
 		if (!from?.params || !to?.params || !from.route || !to.route) return false;
 		if (from.params.roomSlug == to.params.roomSlug || !(from.route.id == to.route.id)) return false;
-		const m = {
-			content: '',
+		const m: SwapMessage = {
 			from: from.params.roomSlug,
-			to: to.params.roomSlug,
-			messageType: MessageType.Swap
+			to: to.params.roomSlug
 		};
-		writer.set(m);
+		writer.set({ payload: JSON.stringify(m), type: EventType.Swap });
 		writer.set(null);
 		currentRoom.set(to.params.roomSlug);
 		return true;
@@ -44,39 +51,27 @@
 		}, 0);
 	}
 
-	const { connect, close, socket } = WebSocketStore();
 	const sendMessage = () => {
 		if (currentMessage === '') return;
-		const m: ISendMessage = {
-			content: currentMessage,
-			messageType: MessageType.Text,
-			from: '',
-			to: ''
+		const m: SendEvent = {
+			payload: currentMessage,
+			type: EventType.Text
 		};
 		writer.set(m);
 		currentMessage = '';
 	};
 	reader.subscribe((m) => {
 		if (!m) return;
-		// console.log({ message: m });
-		switch (m.messageType) {
-			case MessageType.Swap:
+		switch (m.type) {
+			case EventType.Text:
+				messageFeed = [...messageFeed, m.payload];
 				break;
-			case MessageType.Text:
-				messageFeed = [...messageFeed, m];
+			case EventType.ParticipantHistory:
+				if (Array.isArray(m.payload)) participantStore.update((s) => ({ ...s, data: m.payload }));
 				break;
-			case MessageType.Welcome:
-				messageFeed = [...messageFeed, m];
-				break;
-			case MessageType.Bailout:
-				messageFeed = [...messageFeed, m];
-				break;
-			case MessageType.Ping:
-				if (Array.isArray(m.content)) participantStore.update((s) => ({ ...s, data: m.content }));
-				break;
-			case MessageType.History:
+			case EventType.MessageHistory:
 				messageFeed = [];
-				if (Array.isArray(m.content)) m.content.forEach((e) => (messageFeed = [...messageFeed, e]));
+				if (Array.isArray(m.payload)) messageFeed = m.payload.map((e) => e.payload);
 				break;
 			default:
 				console.error('unknown message type');
@@ -87,6 +82,7 @@
 			scrollChatBottom('smooth');
 		}, 0);
 	});
+	// When DOM mounted, scroll to bottom
 	onMount(() => {
 		scrollChatBottom();
 	});
@@ -101,20 +97,10 @@
 			sendMessage();
 		}
 	}
-	// When DOM mounted, scroll to bottom
-	onDestroy(() => {
-		close();
-	});
-	$: messageList = messageFeed
-		.filter((e) => e.roomSlug == $page.params.roomSlug)
-		.sort((a, b) => (a.sid > b.sid ? 1 : -1));
-	// $: console.log({
-	// 	mmmm: $messageStore,
-	// 	feed: messageFeed,
-	// 	list: messageList,
 
-	// 	x: $page.params.roomSlug
-	// });
+	$: messageList = messageFeed
+		// .filter((e) => e.roomSlug == $page.params.roomSlug)
+		.sort((a, b) => (parseInt(a.id) > parseInt(b.id) ? 1 : -1));
 </script>
 
 <!-- Chat -->
@@ -135,7 +121,12 @@
 	<!-- Prompt -->
 	<section class="border-t border-surface-500/30 p-4">
 		<div class="input-group input-group-divider grid-cols-[auto_1fr_auto] rounded-container-token">
-			<button class="input-group-shim">+</button>
+			<button
+				class="input-group-shim"
+				on:click={() => {
+					modalStore.trigger(modal);
+				}}>+</button
+			>
 			<textarea
 				bind:value={currentMessage}
 				class="bg-transparent border-0 ring-0"

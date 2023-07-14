@@ -22,6 +22,9 @@
 <!-- List -->
 <ListBox active="variant-filled-primary">
 	{#if $participantStore.data && $currentUser}
+		{#if !$participantStore.loading && currentRoomParticipants.length == 0}
+			<div class="text-sm text-center">No participants found.</div>
+		{/if}
 		{#each currentRoomParticipants as p}
 			<ListBoxItem bind:group={currentParticipant} name="people" value={p}>
 				<svelte:fragment slot="lead">

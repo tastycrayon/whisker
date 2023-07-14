@@ -25,47 +25,46 @@ export interface IUser {
 	username: string
 	verified: boolean
 }
-
+// event 
+export enum EventType {
+	Text = 2,
+	Swap = 4,
+	ParticipantHistory = 6, // slice
+	MessageHistory = 8, // slice
+}
+export interface SendEvent {
+	payload: string,
+	type: EventType
+}
 // message
-export enum MessageType {
-	Welcome = 2,
-	Ping = 4, // burst 
-	Text = 8,
-	Bailout = 16,
-	Swap = 32,
-	History = 64 // burst
-}
-interface PingType {
-	sid: string;
-	messageType: MessageType.Ping;
-	content: IParticipant[]
-	sender: IParticipant;
-	roomSlug: string;
-	created: string;
-}
-interface HistoryType {
-	sid: string;
-	messageType: MessageType.History;
-	content: IRecieveMessage[]
-	sender: IParticipant;
-	roomSlug: string;
-	created: string;
-}
-interface NormalType {
-	sid: string;
-	messageType: MessageType.Welcome | MessageType.Bailout | MessageType.Text | MessageType.Swap;
-	content: string;
-	sender: IParticipant;
-	roomSlug: string;
-	created: string;
-}
-export interface ISendMessage {
-	content: string;
+export interface SwapMessage {
 	from: string;
 	to: string
-	messageType: MessageType
 }
-export type IRecieveMessage = PingType | HistoryType | NormalType
+export interface TextMessage {
+	id: string;
+	content: string
+	sender: IParticipant
+	created: string
+}
+
+interface MessageHistoryType {
+	payload: TextMessageType[],
+	slug: string,
+	type: EventType.MessageHistory
+}
+interface ParticipantHistoryType {
+	payload: IParticipant[],
+	slug: string,
+	type: EventType.ParticipantHistory
+}
+interface TextMessageType {
+	payload: TextMessage,
+	slug: string,
+	type: EventType.Text
+}
+
+export type IRecieveMessage = MessageHistoryType | ParticipantHistoryType | TextMessageType
 
 export interface IParticipant {
 	id: string;

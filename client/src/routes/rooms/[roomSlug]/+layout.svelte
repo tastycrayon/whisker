@@ -1,6 +1,8 @@
 <script>
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import DarkMode from '$components/dark-mode.svelte';
+	import Icon from '$components/icon.svelte';
 	import Rooms from '$components/room/rooms.svelte';
 	import Typewriter from '$components/typewriter.svelte';
 	import { DEFAULT_IMAGE, LOGIN_PATH, PROFILE_PATH } from '$lib/constant';
@@ -9,11 +11,19 @@
 	import { currentRoom, refreshRooms, roomStore } from '$lib/store';
 	import { CollectionName } from '$lib/types';
 	import { generateAvatar } from '$lib/util';
-	import { Avatar, LightSwitch, ProgressRadial } from '@skeletonlabs/skeleton';
-	import { onMount } from 'svelte';
+	import {
+		Avatar,
+		LightSwitch,
+		ProgressRadial,
+		getModeAutoPrefers,
+		modeCurrent,
+		setModeCurrent,
+		setModeUserPrefers
+	} from '@skeletonlabs/skeleton';
+	import { onDestroy, onMount } from 'svelte';
 
 	$: if (!$currentUser) goto(LOGIN_PATH);
-	const { connect, open, reopen, close, socket } = WebSocketStore();
+	const { connect, close } = WebSocketStore();
 	let loading = true;
 	onMount(async () => {
 		// if ($roomStore.data.length === 0) refreshRooms();
@@ -21,6 +31,10 @@
 		loading = false;
 		currentRoom.set($page.params.roomSlug);
 	});
+	onDestroy(() => {
+		close();
+	});
+	$: console.log({ modeCurrent: $modeCurrent, gg: getModeAutoPrefers() });
 </script>
 
 <section class="card h-full">
@@ -62,7 +76,7 @@
 								>{$currentUser.username}</span
 							>
 						</a>
-						<LightSwitch bgDark="bg-neutral-900/90" />
+						<DarkMode />
 					</div>
 				{/if}
 			</footer>

@@ -4,8 +4,12 @@
       "path": "./client"
     },
     {
-      "path": "./server"
+      "path": "./",
+      "files":{
+        "exclude":{
+          "./client":true
+        }
+      }
     },
   ],
-  "settings": {}
 }

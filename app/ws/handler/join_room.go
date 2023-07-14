@@ -1,37 +1,37 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v5"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/models"
-	"github.com/tastycrayon/go-chat/app/ws"
+	"github.com/tastycrayon/pb-svelte-chatapp/app/ws"
 	"nhooyr.io/websocket"
 )
+
+const readLimit = 1024
 
 func JoinRoom(h *ws.Hub) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		r, w := c.Request(), c.Response()
 
 		roomSlug := c.PathParam("roomSlug")
-
-		if _, roomFound := h.Rooms[roomSlug]; !roomFound {
+		if _, ok := h.Rooms[roomSlug]; !ok {
 			return apis.NewApiError(http.StatusNotFound, "room not found", nil)
 		}
 		// get user
 		authRecord, _ := c.Get(apis.ContextAuthRecordKey).(*models.Record)
 
 		opts := &websocket.AcceptOptions{
-			OriginPatterns: []string{"127.0.0.1:5173", "127.0.0.1:8090", "127.0.0.1:8080", "127.0.0.1:80"},
+			OriginPatterns: []string{"127.0.0.1:5173", "127.0.0.1:8090", "127.0.0.1:8080"},
 		}
 
 		conn, err := websocket.Accept(w, r, opts)
 		if err != nil {
-			fmt.Println(err)
 			return apis.NewApiError(http.StatusInternalServerError, "could not accept websocket connection", nil)
 		}
+		conn.SetReadLimit(readLimit)
 		avatar := authRecord.Get("avatar").(string)
 		participantId := authRecord.Id
 		username := authRecord.Username()
@@ -40,10 +40,10 @@ func JoinRoom(h *ws.Hub) echo.HandlerFunc {
 		h.Register <- participant
 
 		// be ready to write new messages to this user
-		go participant.WriteMessage(r.Context())
+		go participant.WriteMessage(r.Context(), h)
 
 		// read messages from this user and forward the message to channel
-		participant.ReadMessage(h, r.Context()) // subscriber
+		participant.ReadMessage(r.Context(), h) // subscriber
 
 		return nil
 	}

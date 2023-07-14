@@ -1,16 +1,9 @@
 import { writable, type Writable } from 'svelte/store';
-import { DEFAULT_ROOM, PARTICIPANT_PATH, ROOM_PATH } from './constant';
-import { page } from '$app/stores';
-import { type IRecieveMessage, type IRoom, type IParticipant, type ResponseData, CollectionName } from './types';
+import { DEFAULT_ROOM, PARTICIPANT_PATH, } from './constant';
+import { type IRoom, type IParticipant, type ResponseData, CollectionName } from './types';
 import { pb } from './pocketbase';
-import { toastStore, type ToastSettings, localStorageStore } from '@skeletonlabs/skeleton';
+import { toastStore, type ToastSettings, localStorageStore, getModeAutoPrefers } from '@skeletonlabs/skeleton';
 import type { ClientResponseError } from 'pocketbase';
-
-export const messageStore = writable<IRecieveMessage | null>(null);
-
-export default {
-	subscribe: messageStore.subscribe
-};
 
 // rooms
 export const roomStore = writable<ResponseData<IRoom[]>>({ loading: false, error: undefined, data: [] })
@@ -50,10 +43,16 @@ export const participantStore = writable<ResponseData<IParticipant[]>>({ loading
 
 export const refreshParticipants = async (slug: string) => {
 	try {
-		participantStore.set({ loading: true, error: undefined, data: [] })
+		participantStore.update(prev => ({ ...prev, loading: true, error: undefined }))
 		const data = await pb.send<IParticipant[]>(`${PARTICIPANT_PATH}?roomSlug=${slug}`, { method: 'GET' });
 		if (!data) throw new Error("Failed loading participants.")
-		participantStore.set({ loading: false, error: undefined, data: data })
+		participantStore.update(prev => {
+			prev.loading = false, prev.error = undefined
+			if (prev.data.length === 0) return { ...prev, data };
+			if (data && data.length === 0) return prev
+			return { ...prev, data: data.concat(prev.data.filter((item) => data.findIndex(e => e.id === item.id) > 0)) };
+		})
+		// participantStore.set({ loading: false, error: undefined, data: data })
 	} catch (err: any) {
 		if ((err as ClientResponseError).isAbort) return
 		participantStore.update(e => ({ loading: false, error: err, data: e.data }))
@@ -70,11 +69,9 @@ export const refreshSingleParticipant = async (userId: string) => {
 		participantStore.update((s) => {
 			const participants = [...s.data]
 			const idx = participants.findIndex(e => e.id == userId)
-			if (idx === -1) {
-				participants.push(res)
-			} else {
-				participants[idx] = { ...res, roomSlug: participants[idx].roomSlug }
-			}
+			if (idx === -1) participants.push(res)
+			else participants[idx] = { ...res, roomSlug: participants[idx].roomSlug }
+
 			return { error: undefined, data: participants, loading: false }
 		})
 	} catch (err: any) {
@@ -92,5 +89,6 @@ interface UserPreference {
 	lightMode: boolean
 	hideWelcomeMessage: boolean
 }
-const defaultPreference: UserPreference = { lightMode: true, hideWelcomeMessage: true }
+
+const defaultPreference: UserPreference = { lightMode: getModeAutoPrefers(), hideWelcomeMessage: true }
 export const userPreference: Writable<UserPreference> = localStorageStore('userPreference', defaultPreference);

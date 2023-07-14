@@ -1,0 +1,10 @@
+# flyctl launch added from .gitignore
+**/pb_data
+**/tmp
+.DS_Store
+client/node_modules
+client/.svelte-kit
+client/package
+client/.env
+client/.env.*
+client/build

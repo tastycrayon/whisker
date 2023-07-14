@@ -2,13 +2,15 @@ import { PUBLIC_WEBSOCKET_URL } from "$env/static/public";
 import { writable, type Unsubscriber, } from "svelte/store";
 import { ROOM_PATH } from "./constant";
 import { currentRoom } from "./store";
-import type { IRecieveMessage, ISendMessage } from "./types";
+import type { IRecieveMessage, SendEvent } from "./types";
 
 // writer writes to websocket (send messages)
 // reader reads from websocket
 export const reader = writable<IRecieveMessage | null>(null);
-export const writer = writable<ISendMessage | null>(null);
+export const writer = writable<SendEvent | null>(null);
 // reader: Writable<IRecieveMessage | null>, writer: Writable<ISendMessage | null>
+let socket: WebSocket | undefined
+let unsubscribeWriter: Unsubscriber | undefined;
 export const WebSocketStore = () => {
     const reopenTimeouts = [2000, 5000, 10000, 30000, 60000];
     let retryCount = 0, timer: number | undefined;
@@ -17,10 +19,6 @@ export const WebSocketStore = () => {
         if (retryCount > reopenTimeouts.length - 1) retryCount--;
         return reopenTimeouts[retryCount];
     }
-
-    let socket: WebSocket | undefined
-    let unsubscribeWriter: Unsubscriber | undefined;
-
     function close() {
         if (timer) clearTimeout(timer);
         if (!socket) return
@@ -43,7 +41,7 @@ export const WebSocketStore = () => {
             socket = new WebSocket(`${PUBLIC_WEBSOCKET_URL}${ROOM_PATH}/${cRoom}`); // open websocket
             // socket open
             // writer writes to websocket (send messages)
-            unsubscribeWriter = writer.subscribe((m: ISendMessage | null) => {
+            unsubscribeWriter = writer.subscribe((m: SendEvent | null) => {
                 if (!m || !socket || socket.readyState !== WebSocket.OPEN) return
                 console.log("write")
                 socket.send(JSON.stringify(m));

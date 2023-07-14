@@ -10,6 +10,7 @@ const config = {
 	preprocess: [
 		vitePreprocess(),
 		preprocess({
+			preserve: ['ld+javascript'],
 			postcss: true
 		})
 	],
@@ -22,8 +23,8 @@ const config = {
 		adapter: adapter({
 			// pages: 'build',
 			// assets: 'build',
-			pages: '../server/build',
-			assets: '../server/build',
+			pages: 'build',
+			assets: 'build',
 			fallback: 'index.html',
 			precompress: false
 		}),

@@ -5,7 +5,7 @@ import (
 
 	"github.com/labstack/echo/v5"
 	"github.com/pocketbase/pocketbase/apis"
-	"github.com/tastycrayon/go-chat/app/ws"
+	"github.com/tastycrayon/pb-svelte-chatapp/app/ws"
 )
 
 func GetParticipantsByRoom(h *ws.Hub) echo.HandlerFunc {

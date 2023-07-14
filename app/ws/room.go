@@ -3,9 +3,11 @@ package ws
 import (
 	"sync"
 
-	"github.com/tastycrayon/go-chat/app/queue"
+	"github.com/tastycrayon/pb-svelte-chatapp/app/queue"
 	"nhooyr.io/websocket"
 )
+
+const messageCacheSize = 16
 
 type RoomType string
 
@@ -29,13 +31,13 @@ type Room struct {
 	// Personal - created by participants
 	Type RoomType `json:"type"`
 	// Map of participants
-	Participants map[string]*Participant `json:"-"`
+	Participants ParticipantList `json:"-"`
 	// The id of the admin of the room
 	CreatedBy string `json:"createdBy"`
 	// Time the room was made
 	Created string `json:"created"`
 	// A circular queue to persist messages, Default 128 messages
-	LocalMessageQueue *queue.CQueue[MessageFeed] `json:"-"`
+	LocalMessageQueue *queue.CQueue[MessageResponse] `json:"-"`
 
 	// Syncing
 	ParticipantMu *sync.Mutex `json:"-"`
@@ -52,17 +54,55 @@ func NewRoom(roomId, roomSlug, roomName, roomCover, description, createdBy strin
 		Type:              roomType,
 		Created:           created,
 		Participants:      make(map[string]*Participant),
-		LocalMessageQueue: queue.NewCQueue[MessageFeed](128),
+		LocalMessageQueue: queue.NewCQueue[MessageResponse](messageCacheSize),
 		ParticipantMu:     &sync.Mutex{},
 	}
 }
 
-func (r *Room) Delete(h *Hub) {
+func (r *Room) DeleteRoom(h *Hub) {
 	r.ParticipantMu.Lock()
+	defer r.ParticipantMu.Unlock()
 	for _, p := range r.Participants {
-		// h.Unregister <- p
-		go p.Conn.Close(websocket.StatusNormalClosure, "room was permanently deleted")
+		//TODO: sent message informing the deletion
+		h.Unregister <- p
 	}
-	r.ParticipantMu.Unlock()
 	delete(h.Rooms, r.RoomSlug)
+}
+
+// adds a new participant to the room
+func (r *Room) AddParticipant(p *Participant) {
+	r.ParticipantMu.Lock()
+	defer r.ParticipantMu.Unlock()
+
+	p.RoomSlug = r.RoomSlug  // add room to participant
+	r.Participants[p.Id] = p // add participant to room
+}
+
+// removes a new participant from the room
+func (r *Room) RemoveParticipant(p *Participant) {
+	r.ParticipantMu.Lock()
+	defer r.ParticipantMu.Unlock()
+
+	if _, ok := r.Participants[p.Id]; ok {
+		delete(r.Participants, p.Id)
+		p.Conn.Close(websocket.StatusNormalClosure, "deleting participant "+p.Id)
+	}
+}
+
+func (r *Room) BroadcastToPublic(message *MessageResponse) {
+	r.ParticipantMu.Lock()
+	defer r.ParticipantMu.Unlock()
+	for _, participant := range r.Participants { // find all the paerticipants
+		participant.Message <- message // send them messages
+	}
+}
+
+func (r *Room) Cache(message *MessageResponse) {
+	r.ParticipantMu.Lock()
+	defer r.ParticipantMu.Unlock()
+
+	if r.LocalMessageQueue.IsFull() {
+		r.LocalMessageQueue.Dequeue()
+	}
+	r.LocalMessageQueue.Enqueue(message)
 }

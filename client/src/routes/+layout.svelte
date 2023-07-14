@@ -10,16 +10,31 @@
 	import '../app.postcss';
 	// <!-- css setting end -->
 	import '../style/style.css';
-	import { AppShell, Modal, Toast } from '@skeletonlabs/skeleton';
+	import {
+		AppShell,
+		Modal,
+		Toast,
+		getModeOsPrefers,
+		setInitialClassState,
+		setModeCurrent
+	} from '@skeletonlabs/skeleton';
+	import { onMount } from 'svelte';
 
-	// import Navbar from '../components/navbar.svelte';
-	// import type { LayoutData } from './$types';
-	// import Footer from '../components/footer.svelte';
+	// Lifecycle
+	onMount(() => {
+		// Sync lightswitch with the theme
+		if (!('modeCurrent' in localStorage)) {
+			setModeCurrent(getModeOsPrefers());
+		}
+	});
 </script>
+
+<svelte:head
+	>{@html `<\u{73}cript nonce="%sveltekit.nonce%">(${setInitialClassState.toString()})();</script>`}</svelte:head
+>
 
 <Modal zIndex="z-[888]" />
 <Toast zIndex="z-[999]" />
-
 <AppShell>
 	<svelte:fragment slot="header">
 		<!-- <Navbar {user} /> -->

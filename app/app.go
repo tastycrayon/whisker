@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"io/fs"
 	"log"
 	"net/http"
 
@@ -10,10 +11,10 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/models"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
-	"github.com/tastycrayon/go-chat/app/ws"
+	"github.com/tastycrayon/pb-svelte-chatapp/app/ws"
 )
 
-func Run() {
+func Run(buildDirFs, indexFileFs fs.FS) {
 
 	pb := pocketbase.New()
 
@@ -24,23 +25,8 @@ func Run() {
 
 	hub := ws.NewHub()
 
-	// load default rooms
-	// DefaultRoomList := GetDefaultRooms()
-	// for _, room := range DefaultRoomList {
-	// 	hub.Rooms[room.slug] = ws.NewRoom(
-	// 		room.id, room.slug, room.name, room.cover, room.description, "Admin",
-	// 		"6/24/2023, 8:51:08 PM",
-	// 		ws.PublicRoom)
-	// }
 	go hub.Run()
-	// load default rooms end
-	// pb.OnRecordsListRequest().Add(func(e *core.RecordsListEvent) error {
-	// 	if e.Collection.Name == "rooms" {
-	// 		// time.Sleep(time.Second * 2)
-	// 		fmt.Println("rrom")
-	// 	}
-	// 	return nil
-	// })
+
 	pb.OnBeforeServe().Add(func(e *core.ServeEvent) error {
 		records, err := pb.Dao().FindRecordsByExpr("rooms")
 		if err != nil {
@@ -64,7 +50,7 @@ func Run() {
 			hub.Rooms[slug] = ws.NewRoom(id, slug, name, cover, description, createdBy, created, roomType)
 		}
 
-		InitRoutes(pb, e, hub)
+		InitRoutes(pb, e, hub, buildDirFs, indexFileFs)
 		return nil
 	})
 
@@ -123,7 +109,7 @@ func Run() {
 			}
 			slug := e.Record.GetString("slug")
 			if room, roomFound := hub.Rooms[slug]; roomFound {
-				room.Delete(hub)
+				room.DeleteRoom(hub)
 			}
 			return apis.NewApiError(http.StatusBadRequest, "room was not found", nil)
 		}

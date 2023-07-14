@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"io/fs"
 	"net/url"
 
 	"github.com/labstack/echo/v5"
@@ -9,8 +10,8 @@ import (
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/models"
-	"github.com/tastycrayon/go-chat/app/ws"
-	"github.com/tastycrayon/go-chat/app/ws/handler"
+	"github.com/tastycrayon/pb-svelte-chatapp/app/ws"
+	"github.com/tastycrayon/pb-svelte-chatapp/app/ws/handler"
 )
 
 func LoadCookieTokenToHeader(app core.App) echo.MiddlewareFunc {
@@ -50,11 +51,12 @@ func CustomAuthMiddleware(app core.App) echo.MiddlewareFunc {
 	}
 }
 
-func InitRoutes(pb *pocketbase.PocketBase, e *core.ServeEvent, hub *ws.Hub) {
+func InitRoutes(pb *pocketbase.PocketBase, e *core.ServeEvent, hub *ws.Hub, buildDirFs, indexFileFs fs.FS) {
 	// static
-	e.Router.Static("/", "build")
-	e.Router.File("/rooms", "build/index.html")
-	e.Router.File("/rooms/:slug", "build/index.html")
+	e.Router.FileFS("/", "index.html", indexFileFs)
+	e.Router.FileFS("/rooms", "index.html", indexFileFs)
+	e.Router.FileFS("/rooms/:slug", "index.html", indexFileFs)
+	e.Router.StaticFS("/", buildDirFs)
 	// rooms
 	var roomGroup *echo.Group = e.Router.Group("/ws/rooms")
 
@@ -65,7 +67,7 @@ func InitRoutes(pb *pocketbase.PocketBase, e *core.ServeEvent, hub *ws.Hub) {
 	e.Router.GET("/ws/rooms/:roomSlug",
 		handler.JoinRoom(hub),
 		LoadCookieTokenToHeader(pb),
-		apis.LoadAuthContext(pb), CustomAuthMiddleware(pb),
+		apis.LoadAuthContext(pb), CustomAuthMiddleware(pb), apis.ActivityLogger(pb),
 	)
 	roomGroup.GET("", handler.GetAvailableRooms(hub))
 
