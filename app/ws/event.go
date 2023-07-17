@@ -37,11 +37,14 @@ func (event *EventReq) handleSwap(p *Participant, r *Room, h *Hub) error {
 	r.ParticipantMu.Lock()
 	delete(r.Participants, p.Id)
 	r.ParticipantMu.Unlock()
+	r.CheckHealth(h) // check if it is needed to be killed
 
 	p.HandleBailout(r, h)
 
 	newRoom.AddParticipant(p)
 	go p.HandleInit(newRoom, h) // handle it with new room
+	// p.RoomSlug = payload.To
+	// h.Register <- p TODO: use hub later
 
 	return nil
 }

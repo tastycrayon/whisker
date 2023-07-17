@@ -1,9 +1,15 @@
 package ws
 
 import (
+	"context"
+	"fmt"
 	"sync"
+	"time"
 
+	"github.com/pocketbase/pocketbase"
+	"github.com/pocketbase/pocketbase/daos"
 	"github.com/tastycrayon/pb-svelte-chatapp/app/queue"
+	"golang.org/x/time/rate"
 	"nhooyr.io/websocket"
 )
 
@@ -41,6 +47,14 @@ type Room struct {
 
 	// Syncing
 	ParticipantMu *sync.Mutex `json:"-"`
+
+	// publishLimiter controls the rate limit applied to the publish endpoint.
+	//
+	// Defaults to one publish every 100ms with a burst of 8.
+	PublishLimiter *rate.Limiter `json:"-"`
+
+	// inactive means it is scheduled for death
+	Inactive bool
 }
 
 func NewRoom(roomId, roomSlug, roomName, roomCover, description, createdBy string, created string, roomType RoomType) *Room {
@@ -56,17 +70,9 @@ func NewRoom(roomId, roomSlug, roomName, roomCover, description, createdBy strin
 		Participants:      make(map[string]*Participant),
 		LocalMessageQueue: queue.NewCQueue[MessageResponse](messageCacheSize),
 		ParticipantMu:     &sync.Mutex{},
+		PublishLimiter:    rate.NewLimiter(rate.Every(time.Millisecond*100), 8),
+		Inactive:          false,
 	}
-}
-
-func (r *Room) DeleteRoom(h *Hub) {
-	r.ParticipantMu.Lock()
-	defer r.ParticipantMu.Unlock()
-	for _, p := range r.Participants {
-		//TODO: sent message informing the deletion
-		h.Unregister <- p
-	}
-	delete(h.Rooms, r.RoomSlug)
 }
 
 // adds a new participant to the room
@@ -92,8 +98,18 @@ func (r *Room) RemoveParticipant(p *Participant) {
 func (r *Room) BroadcastToPublic(message *MessageResponse) {
 	r.ParticipantMu.Lock()
 	defer r.ParticipantMu.Unlock()
-	for _, participant := range r.Participants { // find all the paerticipants
-		participant.Message <- message // send them messages
+	// for _, participant := range r.Participants { // find all the paerticipants
+	// 	participant.Message <- message // send them messages
+	// }
+	r.PublishLimiter.Wait(context.Background())
+
+	for _, p := range r.Participants { // find all the paerticipants
+		select {
+		case p.Message <- message: // send them messages
+		default:
+			// It never blocks and so messages to slow subscribers are dropped.
+			go p.CloseSlow(p.Conn)
+		}
 	}
 }
 
@@ -105,4 +121,55 @@ func (r *Room) Cache(message *MessageResponse) {
 		r.LocalMessageQueue.Dequeue()
 	}
 	r.LocalMessageQueue.Enqueue(message)
+}
+
+func (r *Room) CheckHealth(h *Hub) {
+	r.ParticipantMu.Lock()
+	defer r.ParticipantMu.Unlock()
+
+	// must be a personal room
+	if r.Type != PersonalRoom {
+		return
+	}
+	// anytime a new user joins, room will be active
+	if len(r.Participants) != 0 {
+		r.Inactive = false
+		return
+	}
+
+	r.Inactive = true // mark as inactive
+	h.RoomReaper.Enqueue(InactiveRoom{room: r, timestamp: time.Now()})
+
+}
+
+func (r *Room) DeleteRoomFromDB(h *Hub, pb *pocketbase.PocketBase) error {
+	// removes from db
+
+	// if record found, proceed with delete
+	fmt.Printf("deleted room from db: %v | ", r.RoomName)
+	return pb.Dao().RunInTransaction(func(txDao *daos.Dao) error {
+		record, err := txDao.FindRecordById("rooms", r.RoomId)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+		if err := txDao.DeleteRecord(record); err != nil {
+			fmt.Println(err)
+			return err
+		}
+		return nil
+	})
+}
+
+func (r *Room) DeleteRoomFromMemory(h *Hub, pb *pocketbase.PocketBase) {
+	r.ParticipantMu.Lock()
+	defer r.ParticipantMu.Unlock()
+	// disconnects everyone
+	for _, p := range r.Participants {
+		//TODO: sent message informing the deletion
+		h.Unregister <- p
+	}
+	// removes from memory
+	delete(h.Rooms, r.RoomSlug)
+	fmt.Println("deleted room from memory: ", r.RoomName)
 }

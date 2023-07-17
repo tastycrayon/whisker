@@ -1,4 +1,5 @@
 # flyctl launch added from .gitignore
+.git
 **/pb_data
 **/tmp
 .DS_Store

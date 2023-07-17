@@ -1,19 +1,15 @@
-# fly.toml app configuration file generated for go-chat-app on 2023-07-12T01:40:27+06:00
+# fly.toml app configuration file generated for whisker on 2023-07-15T23:07:29+06:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = "go-chat-app"
+app = "whisker"
 primary_region = "sin"
 kill_signal = "SIGINT"
 kill_timeout = "5s"
 
 [experimental]
   auto_rollback = true
-
-[env]
-  PUBLIC_POCKETBASE_URL = "https://go-chat-app.fly.dev"
-  PUBLIC_WEBSOCKET_URL = "wss://go-chat-app.fly.dev/ws"
 
 [[mounts]]
   source = "pb_data"

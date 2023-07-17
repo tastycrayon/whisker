@@ -74,7 +74,7 @@
 			loading = true;
 			const res = await pb.collection('rooms').create<IRoom>(formData);
 			const toast: ToastSettings = {
-				message: `New room ${res.name} <a href="${getFullSlug(
+				message: `Successfully created ${res.name} <a href="${getFullSlug(
 					res.slug
 				)}" class="btn btn-sm variant-filled">View</a>`,
 				background: 'variant-filled-success'

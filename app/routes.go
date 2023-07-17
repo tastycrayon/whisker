@@ -53,9 +53,10 @@ func CustomAuthMiddleware(app core.App) echo.MiddlewareFunc {
 
 func InitRoutes(pb *pocketbase.PocketBase, e *core.ServeEvent, hub *ws.Hub, buildDirFs, indexFileFs fs.FS) {
 	// static
-	e.Router.FileFS("/", "index.html", indexFileFs)
-	e.Router.FileFS("/rooms", "index.html", indexFileFs)
-	e.Router.FileFS("/rooms/:slug", "index.html", indexFileFs)
+	for _, route := range []string{"/", "/rooms", "/rooms/:slug", "/login", "/register", "/me", "/about"} {
+		e.Router.FileFS(route, "index.html", indexFileFs)
+	}
+
 	e.Router.StaticFS("/", buildDirFs)
 	// rooms
 	var roomGroup *echo.Group = e.Router.Group("/ws/rooms")

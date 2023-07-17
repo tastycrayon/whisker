@@ -19,7 +19,7 @@
 					<Icon name="arrow-left" width="18px" height="18px" />
 				</a>
 			</svelte:fragment>
-			<a href={ROOM_PATH}>Back to rooms</a>
+			<a href={ROOM_PATH}>Back to Rooms</a>
 			<svelte:fragment slot="trail">
 				<DarkMode />
 				<a class="btn-icon btn-icon-sm variant-soft" href={PROFILE_PATH} title="Profile">

@@ -1,11 +1,11 @@
 package ws
 
 import (
+	"container/heap"
 	"fmt"
-	"time"
+	"sync"
 
 	"github.com/bwmarrin/snowflake"
-	"golang.org/x/time/rate"
 )
 
 type Hub struct {
@@ -21,10 +21,9 @@ type Hub struct {
 	//
 	// Defaults to 16.
 	SubscriberMessageBuffer int
-	// publishLimiter controls the rate limit applied to the publish endpoint.
-	//
-	// Defaults to one publish every 100ms with a burst of 8.
-	PublishLimiter *rate.Limiter
+
+	// Rooms added here will be scheduled for death
+	RoomReaper *RoomHeap
 }
 
 func (h *Hub) Run() {
@@ -33,34 +32,21 @@ func (h *Hub) Run() {
 		case participant := <-h.Register:
 			if room, ok := h.Rooms[participant.RoomSlug]; ok {
 				if _, ok := room.Participants[participant.Id]; !ok {
-					fmt.Println("Register participant")
+					fmt.Println("Register participant", participant.Username)
 					room.AddParticipant(participant)
 					go participant.HandleInit(room, h)
+					room.CheckHealth(h)
 				}
 			}
 		case participant := <-h.Unregister:
 			if room, ok := h.Rooms[participant.RoomSlug]; ok {
 				if _, ok := room.Participants[participant.Id]; ok {
-					fmt.Println("delete connection")
+					fmt.Println("delete connection", participant.Username)
 					// delete participant
 					room.RemoveParticipant(participant)
 					participant.HandleBailout(room, h)
+					room.CheckHealth(h)
 				}
-				// // delete room if no one left
-				// if room.Type == PersonalRoom && len(room.Participants) == 0 { // must not be a public room
-				// 	// time.AfterFunc(1*time.Hour, func() {
-				// 	time.AfterFunc(10*time.Second, func() {
-				// 		fmt.Println("hit")
-				// 		if room, doesRoomExist := h.Rooms[participant.RoomSlug]; doesRoomExist {
-				// 			room.ParticipantMu.Lock()
-				// 			if len(room.Participants) == 0 {
-				// 				fmt.Println("hi2")
-				// 				delete(h.Rooms, room.RoomSlug)
-				// 			}
-				// 			room.ParticipantMu.Unlock()
-				// 		}
-				// 	})
-				// }
 			}
 
 		case message := <-h.Broadcast:
@@ -77,6 +63,13 @@ func NewHub() *Hub {
 	if err != nil {
 		panic(err)
 	}
+
+	// var pq InactiveRooms = make(InactiveRooms, 0, 128)
+	var pq RoomHeap = RoomHeap{
+		data:     make(InactiveRooms, 0, 128),
+		ReaperMu: &sync.Mutex{},
+	}
+	heap.Init(&pq)
 	return &Hub{
 		Broadcast:               make(chan *MessageResponse, 16),
 		Register:                make(chan *Participant, 16),
@@ -84,6 +77,6 @@ func NewHub() *Hub {
 		Rooms:                   make(map[string]*Room),
 		Node:                    node,
 		SubscriberMessageBuffer: 16,
-		PublishLimiter:          rate.NewLimiter(rate.Every(time.Millisecond*100), 8),
+		RoomReaper:              &pq,
 	}
 }

@@ -15,15 +15,14 @@ import (
 )
 
 func Run(buildDirFs, indexFileFs fs.FS) {
-
 	pb := pocketbase.New()
-
 	// migration
 	migratecmd.MustRegister(pb, pb.RootCmd, &migratecmd.Options{
 		Automigrate: true, // auto creates migration files when making collection changes
 	})
 
 	hub := ws.NewHub()
+	ws.CleanupDeadRoom(hub, pb)
 
 	go hub.Run()
 
@@ -32,9 +31,8 @@ func Run(buildDirFs, indexFileFs fs.FS) {
 		if err != nil {
 			fmt.Println("err", err)
 		}
-
 		for _, r := range records {
-			id := r.GetString("id")
+			id := r.GetId()
 			slug := r.GetString("slug")
 			name := r.GetString("name")
 			description := r.GetString("description")
@@ -44,7 +42,6 @@ func Run(buildDirFs, indexFileFs fs.FS) {
 			if rawRoomType := r.GetString("type"); rawRoomType == string(ws.PublicRoom) {
 				roomType = ws.PublicRoom
 			}
-
 			createdBy := r.GetString("createdBy")
 			created := r.GetCreated().String()
 			hub.Rooms[slug] = ws.NewRoom(id, slug, name, cover, description, createdBy, created, roomType)
@@ -109,8 +106,9 @@ func Run(buildDirFs, indexFileFs fs.FS) {
 			}
 			slug := e.Record.GetString("slug")
 			if room, roomFound := hub.Rooms[slug]; roomFound {
-				room.DeleteRoom(hub)
+				room.DeleteRoomFromMemory(hub, pb)
 			}
+			fmt.Println("hook hit 1 ", slug)
 			return apis.NewApiError(http.StatusBadRequest, "room was not found", nil)
 		}
 		return nil

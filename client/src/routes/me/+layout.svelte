@@ -1,4 +1,5 @@
 <script lang="ts">
+	import DarkMode from '$components/dark-mode.svelte';
 	import Icon from '$components/icon.svelte';
 	import { PROFILE_EDIT_PATH, ROOM_PATH } from '$lib/constant';
 	import { AppBar, AppShell } from '@skeletonlabs/skeleton';
@@ -12,8 +13,9 @@
 					<Icon name="arrow-left" width="18px" height="18px" />
 				</a>
 			</svelte:fragment>
-			<a href={ROOM_PATH}>Back to rooms</a>
+			<a href={ROOM_PATH}>Back to Rooms</a>
 			<svelte:fragment slot="trail">
+				<DarkMode />
 				<a class="btn-icon btn-icon-sm variant-soft" href={PROFILE_EDIT_PATH} title="Edit Profile">
 					<Icon name="edit" width="18px" height="18px" />
 				</a>

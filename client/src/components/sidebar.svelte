@@ -1,31 +1,30 @@
 <script lang="ts">
-	import { Autocomplete, type AutocompleteOption } from '@skeletonlabs/skeleton';
+	import { Autocomplete, drawerStore, type AutocompleteOption } from '@skeletonlabs/skeleton';
 	import Rooms from './room/rooms.svelte';
 	import { refreshRooms, roomStore } from '$lib/store';
 	import { onMount } from 'svelte';
-	let inputDemo = '';
+	import { goto } from '$app/navigation';
+	import { ROOM_PATH } from '$lib/constant';
 
-	let flavorOptions: AutocompleteOption[] = $roomStore.data.map((e) => ({
+	let inputDemo = '';
+	$: roomOptions = $roomStore.data.map((e) => ({
 		label: e.name,
-		value: e.name,
-		keywords: [e.name, e.slug, e.createdBy, e.type, e.description].join(', '),
+		value: e.slug,
+		keywords: [e.description, e.createdBy, e.type].join(', '),
 		meta: { slug: e.slug }
 	}));
 
-	function onFlavorSelection(event: any): void {
-		console.log({ event });
-		inputDemo = event.detail.label;
-	}
 	let isFocused = false;
+	function onRoomSelection(event: any): void {
+		inputDemo = event.detail.label;
+		goto(ROOM_PATH + '/' + event.detail.meta.slug);
+		drawerStore.close();
+	}
+
 	const onFocus = () => (isFocused = true);
-	const onBlur = () => (isFocused = false);
 	onMount(() => {
 		if ($roomStore.data.length === 0) refreshRooms();
 	});
-
-	function onClickHandle(params: any) {
-		console.log({ params });
-	}
 </script>
 
 <!-- Header -->
@@ -33,19 +32,17 @@
 	<input
 		bind:value={inputDemo}
 		on:focus={onFocus}
-		on:blur={onBlur}
 		class="input"
 		type="search"
 		placeholder="Search..."
 	/>
 	{#if isFocused}
-		<div class="absolute top-100 left-0 w-full p-4">
+		<div class="absolute top-100 left-0 w-full p-4 z-[10]">
 			<div class="card w-full max-w-sm max-h-48 p-4 overflow-y-auto" tabindex="-1">
 				<Autocomplete
 					bind:input={inputDemo}
-					options={flavorOptions}
-					on:selection={onFlavorSelection}
-					on:click={onClickHandle}
+					options={roomOptions}
+					on:selection={onRoomSelection}
 					class="text-sm"
 				/>
 			</div>

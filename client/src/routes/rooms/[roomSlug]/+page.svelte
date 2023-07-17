@@ -74,7 +74,7 @@
 				if (Array.isArray(m.payload)) messageFeed = m.payload.map((e) => e.payload);
 				break;
 			default:
-				console.error('unknown message type');
+				console.error('unknown message type', { m });
 				break;
 		}
 		reader.set(null);
