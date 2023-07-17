@@ -24,7 +24,9 @@ type RoomHeap struct {
 
 func (rr *RoomHeap) Less(i, j int) bool { return rr.data[i].timestamp.After(rr.data[j].timestamp) }
 func (rr *RoomHeap) Swap(i, j int)      { rr.data[i], rr.data[j] = rr.data[j], rr.data[i] }
-
+func (rr *RoomHeap) Push(x any) {
+	rr.data = append(rr.data, x.(InactiveRoom))
+}
 func (rr *RoomHeap) Pop() any {
 	old := rr.data
 	n := len(old)
@@ -41,10 +43,6 @@ func (rr *RoomHeap) Dequeue() InactiveRoom {
 	rr.ReaperMu.Lock()
 	defer rr.ReaperMu.Unlock()
 	return rr.Pop().(InactiveRoom)
-}
-
-func (rr *RoomHeap) Push(x any) {
-	rr.data = append(rr.data, x.(InactiveRoom))
 }
 func (rr *RoomHeap) Enqueue(x InactiveRoom) {
 	rr.ReaperMu.Lock()

@@ -143,8 +143,6 @@ func (r *Room) CheckHealth(h *Hub) {
 }
 
 func (r *Room) DeleteRoomFromDB(h *Hub, pb *pocketbase.PocketBase) error {
-	// removes from db
-
 	// if record found, proceed with delete
 	fmt.Printf("deleted room from db: %v | ", r.RoomName)
 	return pb.Dao().RunInTransaction(func(txDao *daos.Dao) error {
