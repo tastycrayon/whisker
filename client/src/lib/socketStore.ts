@@ -1,171 +1,205 @@
-import { PUBLIC_WEBSOCKET_URL } from "$env/static/public";
-import { writable, type Unsubscriber, } from "svelte/store";
-import { ROOM_PATH } from "./constant";
-import { currentRoom } from "./store";
+
+import { writable, type Unsubscriber, type Writable, } from "svelte/store";
+import { NOT_FOUND_PATH } from "./constant";
 import type { IRecieveMessage, SendEvent } from "./types";
+import { goto } from "$app/navigation";
+import { toastStore, type ToastSettings } from "@skeletonlabs/skeleton";
 
 // writer writes to websocket (send messages)
 // reader reads from websocket
 export const reader = writable<IRecieveMessage | null>(null);
 export const writer = writable<SendEvent | null>(null);
-// reader: Writable<IRecieveMessage | null>, writer: Writable<ISendMessage | null>
-let socket: WebSocket | undefined
-let unsubscribeWriter: Unsubscriber | undefined;
-export const WebSocketStore = () => {
-    const reopenTimeouts = [2000, 5000, 10000, 30000, 60000];
-    let retryCount = 0, timer: number | undefined;
-    function retryTimeout() {
-        retryCount++;
-        if (retryCount > reopenTimeouts.length - 1) retryCount--;
-        return reopenTimeouts[retryCount];
-    }
-    function close() {
-        if (timer) clearTimeout(timer);
-        if (!socket) return
-        console.log("about to close")
-        socket.close();
-        socket = undefined;
-        if (unsubscribeWriter) unsubscribeWriter()
-    }
-    function reopen() {
-        close();
-        timer = setTimeout(() => open(), retryTimeout());
-    }
-    let cRoom: string = ""
-    currentRoom.subscribe(room => cRoom = room)
+export const loading = writable<boolean>(false);
 
-    let openPromise: Promise<WebSocket | undefined>
-    const open = (): Promise<WebSocket | undefined> => {
-        return new Promise(function (resolve, reject) {
-            if (socket) return resolve(socket);
-            socket = new WebSocket(`${PUBLIC_WEBSOCKET_URL}${ROOM_PATH}/${cRoom}`); // open websocket
-            // socket open
-            // writer writes to websocket (send messages)
-            unsubscribeWriter = writer.subscribe((m: SendEvent | null) => {
-                if (!m || !socket || socket.readyState !== WebSocket.OPEN) return
-                console.log("write")
-                socket.send(JSON.stringify(m));
-                writer.set(null)
-            });
-            // socket open
-            socket.onopen = () => {
-                retryCount = 0;
-                return resolve(socket);
-            };
-            socket.onerror = (err) => reject(err);
-            socket.onclose = () => reopen()
-            socket.onmessage = (event) => {
-                console.log("read")
-                reader.set(JSON.parse(event.data) as IRecieveMessage)
-            }
-        });
-    }
+// let socket: WebSocket | undefined = undefined
+// let unsubscribeWriter: Unsubscriber | undefined;
+// let openPromise: Promise<WebSocket | undefined>
 
-    async function connect() {
-        if (timer) clearTimeout(timer)
-        timer = undefined;
-        if (openPromise) return openPromise
-        openPromise = open()
-        return openPromise
-    }
-    return {
-        connect, open, reopen, close, socket
-    }
-}
-
-// /**
-//  * Create a writable store based on a web-socket.
-//  * Data is transferred as JSON.
-//  * Keeps socket open (reopens if closed) as long as there are subscriptions.
-//  * @param {string} url the WebSocket url
-//  * @param {any} initialValue store value used before 1st. response from server is present
-//  * @param {string[]} socketOptions transparently passed to the WebSocket constructor
-//  * @return {Store}
-//  */
-// export function websocketStore(url: string, initialValue: any, socketOptions: string[]) {
-//     let socket: WebSocket | undefined, openPromise: Promise<unknown> | undefined, reopenTimeoutHandler: number | undefined;
-//     let reopenCount = 0;
-//     const subscriptions = new Set<(x: string) => any>();
-
-//     function reopenTimeout() {
-//         const n = reopenCount;
-//         reopenCount++;
-//         return reopenTimeouts[
-//             n >= reopenTimeouts.length - 1 ? reopenTimeouts.length - 1 : n
-//         ];
+// export const WebSocketStore = () => {
+//     const reopenTimeouts = [2000, 5000, 10000, 30000, 60000];
+//     let retryCount = 0, timer: number | undefined;
+//     function retryTimeout() {
+//         retryCount++;
+//         if (retryCount > reopenTimeouts.length - 1) retryCount--;
+//         return reopenTimeouts[retryCount];
 //     }
-
 //     function close() {
-//         if (reopenTimeoutHandler) {
-//             clearTimeout(reopenTimeoutHandler);
-//         }
-
-//         if (socket) {
-//             socket.close();
-//             socket = undefined;
-//         }
+//         if (timer) clearTimeout(timer);
+//         if (!socket) return
+//         console.log("about to close")
+//         socket.close();
+//         socket = undefined;
+//         if (unsubscribeWriter) unsubscribeWriter()
 //     }
-
 //     function reopen() {
 //         close();
-//         if (subscriptions.size > 0) {
-//             reopenTimeoutHandler = setTimeout(() => open(), reopenTimeout());
-//         }
+//         timer = setTimeout(() => open(), retryTimeout());
 //     }
+//     let cRoom: string = ""
+//     currentRoom.subscribe(room => cRoom = room)
 
-//     async function open() {
-//         if (reopenTimeoutHandler) {
-//             clearTimeout(reopenTimeoutHandler);
-//             reopenTimeoutHandler = undefined;
-//         }
-
-//         // we are still in the opening phase
-//         if (openPromise) {
-//             return openPromise;
-//         }
-
-//         socket = new WebSocket(url, socketOptions);
-
-//         socket.onmessage = event => {
-//             initialValue = JSON.parse(event.data);
-//             subscriptions.forEach(subscription => subscription(initialValue));
-//         };
-
-//         socket.onclose = event => reopen();
-
-//         openPromise = new Promise((resolve, reject) => {
-//             if (!socket) return
-//             socket.onerror = error => {
-//                 reject(error);
-//                 openPromise = undefined;
+//     const open = (): Promise<WebSocket | undefined> => {
+//         return new Promise((res, rej) => {
+//             if (socket) return res(socket);
+//             socket = new WebSocket(`${PUBLIC_WEBSOCKET_URL}${ROOM_PATH}/${cRoom}`); // open websocket
+//             // socket open
+//             if (unsubscribeWriter) unsubscribeWriter() // if already subscibed, unsubscribe
+//             // writer writes to websocket (send messages)
+//             unsubscribeWriter = writer.subscribe((m: SendEvent | null) => {
+//                 if (!m || !socket || socket.readyState !== WebSocket.OPEN) return res(open())
+//                 console.log("write")
+//                 socket.send(JSON.stringify(m));
+//                 writer.set(null)
+//             });
+//             // socket open
+//             socket.onopen = () => {
+//                 retryCount = 0;
+//                 return res(socket);
 //             };
-//             socket.onopen = event => {
-//                 reopenCount = 0;
-//                 resolve(1);
-//                 openPromise = undefined;
-//             };
+//             socket.onerror = (err) => rej(err);
+//             socket.onclose = (err) => {
+//                 rej(err)
+//                 reopen()
+//             }
+//             socket.onmessage = (event) => {
+//                 console.log("read")
+//                 reader.set(JSON.parse(event.data) as IRecieveMessage)
+//             }
 //         });
-//         return openPromise;
 //     }
 
+//     async function connect(): Promise<WebSocket | undefined> {
+//         if (timer) clearTimeout(timer)
+//         timer = undefined;
+//         if (openPromise) return openPromise
+//         openPromise = open()
+//         return openPromise
+//     }
 //     return {
-//         set: (value: string) => {
-//             const send = () => socket?.send(JSON.stringify(value));
-//             if (socket?.readyState !== WebSocket.OPEN) open().then(send);
-//             else send();
-//         },
-//         subscribe: (subscription: (x: string) => void) => {
-//             open();
-//             subscription(initialValue);
-//             subscriptions.add(subscription);
-//             return () => {
-//                 subscriptions.delete(subscription);
-//                 if (subscriptions.size === 0) {
-//                     close();
-//                 }
-//             };
-//         }
-//     };
+//         connect, open, reopen, close, socket
+//     }
 // }
 
-// export default websocketStore;
+const createWebSocket = (url: string): WebSocket => new WebSocket(url)
+export class WS {
+    _reader: Writable<IRecieveMessage | null>
+    _writer: Writable<SendEvent | null>
+    _loading: Writable<boolean>
+    _unsubscribeWriter: Unsubscriber | undefined
+    _url: string
+    _socket: WebSocket | undefined
+    _promise: Promise<WebSocket> | undefined
+    _reopenTimeouts = [2000, 5000, 10000, 30000, 60000];
+    _retryCount: number = 0;
+    _timer: number = 0;
+
+    get retryTimeout(): number {
+        this._retryCount++;
+        if (this._retryCount >= this._reopenTimeouts.length) this._retryCount--;
+        return this._reopenTimeouts[this._retryCount];
+    }
+
+    get isOpening() {
+        return Boolean(this._socket && this._socket.readyState === WebSocket.CONNECTING);
+    }
+    get isOpened() {
+        return Boolean(this._socket && this._socket.readyState === WebSocket.OPEN);
+    }
+    get isClosing() {
+        return Boolean(this._socket && this._socket.readyState === WebSocket.CLOSING);
+    }
+    get isClosed() {
+        return Boolean(!this._socket || this._socket.readyState === WebSocket.CLOSED);
+    }
+    _onOpen(event: Event) {
+        this.setLoadingFalse()
+        this._retryCount = 0
+    }
+    _onError(event: Event) {
+        this.setLoadingFalse()
+        this._notifyError("Error establishing connection")
+    }
+    _onSend(event: MessageEvent<string>) {
+        console.log("read")
+        reader.set(JSON.parse(event.data) as IRecieveMessage)
+    }
+    _onClose(event: CloseEvent) {
+        this.setLoadingFalse()
+        switch (event.code) {
+            case 1000: // StatusNormalClosure
+                if (event.reason === "GOING_AWAY") return
+                if (event.reason === "404_NOT_FOUND") goto(NOT_FOUND_PATH)
+                break;
+            default:
+                const message = event.reason === "" ? "Abnormaly lost connection" : event.reason
+                this._notifyError(message)
+                this._reOpen()
+                break;
+        }
+    }
+    _onMessage(event: MessageEvent<string>) { reader.set(JSON.parse(event.data) as IRecieveMessage) }
+
+    _reOpen() {
+        this.closeConnection()
+        this._timer = setTimeout(this.connect.bind(this), this.retryTimeout);
+    }
+    _notifyError(message: string) {
+        const t: ToastSettings = { message, background: "variant-filled-error" };
+        setTimeout(() => toastStore.trigger(t), 100)
+    }
+    setLoadingTrue() {
+        this._loading.set(true)
+    }
+    setLoadingFalse() {
+        this._loading.set(false)
+    }
+    setWriter() {
+        this._unsubscribeWriter = writer.subscribe((m: SendEvent | null) => {
+            if (!m || !this._socket || !this.isOpened) return
+            console.log("write")
+            this._socket.send(JSON.stringify(m));
+            writer.set(null)
+        });
+    }
+    open(): Promise<WebSocket> {
+        return new Promise<WebSocket>((res, rej) => {
+            if (this._socket && this.isOpened) return res(this._socket)
+            if (this._socket && (this.isClosing || this.isClosed)) return rej(this._socket)
+            // if (this.isOpening) return // umm.. what should I do here? await this.isOpening ?
+
+            if (this._unsubscribeWriter) this._unsubscribeWriter()
+            this._socket = createWebSocket(this._url)
+            this._socket.onopen = this._onOpen.bind(this)
+            this._socket.onclose = this._onClose.bind(this)
+            this._socket.onerror = this._onError.bind(this)
+            this._socket.onmessage = this._onMessage.bind(this)
+
+            this.setWriter()
+            res(this._socket)
+        })
+    };
+    connect(): Promise<WebSocket | undefined> {
+        if (this._promise) return this._promise
+        if (this._timer) clearTimeout(this._timer)
+        this.setLoadingTrue()
+        this._timer = 0;
+        this._promise = this.open()
+        return this._promise
+
+    }
+    closeConnection() {
+        console.log("about to close")
+        if (this._timer) clearTimeout(this._timer);
+        if (this._unsubscribeWriter) this._unsubscribeWriter()
+        if (!this._socket) return
+        if (this.isOpened) this._socket.close(1000, "GOING_AWAY")
+        this._socket = undefined;
+        this._promise = undefined;
+    }
+    constructor(url: string, reader: Writable<IRecieveMessage | null>, writer: Writable<SendEvent | null>, loading: Writable<boolean>) {
+        this._url = url;
+        this._reader = reader
+        this._writer = writer
+        this._loading = loading
+    }
+}

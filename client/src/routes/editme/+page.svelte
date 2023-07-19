@@ -112,7 +112,6 @@
 		try {
 			passwordLoading = true;
 			const res = await pb.collection('users').requestPasswordReset($currentUser?.email);
-			console.log({ res });
 			const toast: ToastSettings = {
 				message: 'Password reset email has been sent.',
 				background: 'variant-filled-success'

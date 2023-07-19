@@ -4,23 +4,34 @@
 	import Footer from '$components/footer.svelte';
 	import Icon from '$components/icon.svelte';
 	import Sidebar from '$components/sidebar.svelte';
-	import { LOGIN_PATH } from '$lib/constant';
+	import { PUBLIC_WEBSOCKET_URL } from '$env/static/public';
+	import { DEFAULT_ROOM, LOGIN_PATH, ROOM_PATH } from '$lib/constant';
 	import { currentUser } from '$lib/pocketbase';
-	import { WebSocketStore } from '$lib/socketStore';
+	import { WS, loading, reader, writer } from '$lib/socketStore';
 	import { currentRoom } from '$lib/store';
 	import { type DrawerSettings, drawerStore } from '@skeletonlabs/skeleton';
 	import { onDestroy, onMount } from 'svelte';
 
 	$: if (!$currentUser) goto(LOGIN_PATH);
-	const { connect, close } = WebSocketStore();
-	let loading = true;
+	// const { connect, close } = WebSocketStore();
+	currentRoom.set($page.params.roomSlug || DEFAULT_ROOM);
+	const socket = new WS(
+		`${PUBLIC_WEBSOCKET_URL}${ROOM_PATH}/${$currentRoom}`,
+		reader,
+		writer,
+		loading
+	);
+
 	onMount(async () => {
-		await connect();
-		loading = false;
-		currentRoom.set($page.params.roomSlug);
+		try {
+			const res = await socket.connect();
+			// console.log({ res });
+		} catch (err) {
+			console.log({ err });
+		}
 	});
 	onDestroy(() => {
-		close();
+		socket.closeConnection();
 	});
 
 	const drawerSettings: DrawerSettings = {
@@ -47,7 +58,7 @@
 		>
 			<Sidebar />
 			<!-- Footer -->
-			<Footer {loading} />
+			<Footer />
 		</div>
 		<slot />
 	</div>

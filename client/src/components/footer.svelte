@@ -6,12 +6,21 @@
 	import { generateAvatar } from '$lib/util';
 	import { CollectionName } from '$lib/types';
 	import DarkMode from './dark-mode.svelte';
-
-	export let loading = false;
+	import { loading } from '$lib/socketStore';
+	import Icon from './icon.svelte';
 </script>
 
 <footer class="border-t border-surface-500/30 space-y-2">
-	{#if loading}
+	{#if !navigator.onLine}
+		<div>
+			<aside class="w-full inline-flex gap-2 items-center justify-between px-4">
+				<small>Connection not available</small>
+				<p><Icon name="cell-signal-slash" width="16px" height="16px" /></p>
+			</aside>
+			<hr />
+		</div>
+	{/if}
+	{#if $loading}
 		<div>
 			<aside class="w-full inline-flex gap-2 items-center justify-between px-4">
 				<small>Connecting <Typewriter slogans={['.', '..', '...']} /></small>

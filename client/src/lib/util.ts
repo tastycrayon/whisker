@@ -61,3 +61,22 @@ export const firstConfirm = (): Promise<boolean> => {
     })
 };
 
+export const isImageUrl = (url: string): boolean => {
+    const pattern = /^https?:\/\/.+\.(jpg|jpeg|png|webp|avif|gif)$/;
+    return pattern.test(url)
+}
+export const isVideoUrl = (url: string): boolean => {
+    const pattern = /^https?:\/\/.+\.(mp4|ogg|webm)$/;
+    return pattern.test(url)
+}
+export const isYoutubeUrl = (url: string): boolean => {
+    const pattern = /^(https?\:\/\/)?(www\.youtube\.com|youtu\.be)\/.+$/;
+    return pattern.test(url)
+}
+
+export const getYoutubeVideoId = (url: string): string | null => {
+    let pattern = /(youtu.*be.*)\/(watch\?v=|embed\/|v|shorts|)(.*?((?=[&#?])|$))/gm;
+    const ids = pattern.exec(url);
+    if (!ids) return null
+    return ids[3] || null
+}

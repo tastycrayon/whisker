@@ -53,7 +53,7 @@ func CustomAuthMiddleware(app core.App) echo.MiddlewareFunc {
 
 func InitRoutes(pb *pocketbase.PocketBase, e *core.ServeEvent, hub *ws.Hub, buildDirFs, indexFileFs fs.FS) {
 	// static
-	for _, route := range []string{"/", "/rooms", "/rooms/:slug", "/login", "/register", "/me", "/about"} {
+	for _, route := range []string{"/", "/rooms", "/rooms/:slug", "/login", "/register", "/me", "/about", "/404"} {
 		e.Router.FileFS(route, "index.html", indexFileFs)
 	}
 

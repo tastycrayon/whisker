@@ -5,6 +5,13 @@
 	export let fill: boolean = false;
 
 	const icons = {
+		'cell-signal-slash': {
+			boxWidth: 32,
+			boxHeight: 32,
+			svg: `<path d="M5.99927 5.00104L25.9993 27.001" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M16.926 11.074L23.2929 4.70711C23.4328 4.56726 23.6109 4.47202 23.8049 4.43343C23.9989 4.39485 24.2 4.41465 24.3827 4.49034C24.5654 4.56602 24.7216 4.6942 24.8315 4.85865C24.9414 5.02309 25 5.21643 25 5.41422V19.9554" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M25.9994 27.001L3.41431 27C3.21653 27 3.02319 26.9413 2.85874 26.8315C2.69429 26.7216 2.56612 26.5654 2.49043 26.3827C2.41474 26.2 2.39494 25.9989 2.43352 25.8049C2.47211 25.6109 2.56735 25.4327 2.7072 25.2929L14.0945 13.9056" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`
+		},
 		category: {
 			boxWidth: 24,
 			boxHeight: 24,

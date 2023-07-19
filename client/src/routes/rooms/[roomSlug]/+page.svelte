@@ -27,8 +27,6 @@
 	let messageFeed: TextMessage[] = [];
 	let currentMessage = '';
 
-	// $: if ($page.params.roomSlug !== $currentRoom) currentRoom.set($page.params.roomSlug);
-
 	const roomSwitcher = (): boolean => {
 		if (!$navigating) return false;
 		const { from, to } = $navigating;

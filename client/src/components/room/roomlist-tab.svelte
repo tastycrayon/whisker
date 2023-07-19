@@ -19,7 +19,7 @@
 	export let room: IRoom;
 	let showParticipantCount = false;
 	let tabSet: number = 0;
-	$: console.log({ participantStore: $participantStore.data });
+	// $: console.log({ participantStore: $participantStore.data });
 	$: roomOwner = $participantStore.data.find((p) => p.id == room.createdBy);
 	const cover = generateAvatar(CollectionName.Room, room.id, room.cover);
 	onMount(async () => {

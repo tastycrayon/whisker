@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"net/http"
+	"fmt"
 
 	"github.com/labstack/echo/v5"
 	"github.com/pocketbase/pocketbase/apis"
@@ -17,21 +17,25 @@ func JoinRoom(h *ws.Hub) echo.HandlerFunc {
 		r, w := c.Request(), c.Response()
 
 		roomSlug := c.PathParam("roomSlug")
+
+		// upgrade websocket
+		opts := &websocket.AcceptOptions{
+			OriginPatterns: []string{"127.0.0.1:5173", "127.0.0.1:8090", "127.0.0.1:8080"},
+		}
+		conn, err := websocket.Accept(w, r, opts)
+		if err != nil {
+			return apis.NewApiError(int(websocket.StatusInternalError), "could not accept websocket connection", nil)
+		}
+		conn.SetReadLimit(readLimit)
+		// upgrade end
 		if _, ok := h.Rooms[roomSlug]; !ok {
-			return apis.NewApiError(http.StatusNotFound, "room not found", nil)
+			fmt.Println("room not found")
+			return conn.Close(websocket.StatusNormalClosure, "404_NOT_FOUND")
+			// return apis.NewApiError(http.StatusNotFound, "room not found", nil)
 		}
 		// get user
 		authRecord, _ := c.Get(apis.ContextAuthRecordKey).(*models.Record)
 
-		opts := &websocket.AcceptOptions{
-			OriginPatterns: []string{"127.0.0.1:5173", "127.0.0.1:8090", "127.0.0.1:8080"},
-		}
-
-		conn, err := websocket.Accept(w, r, opts)
-		if err != nil {
-			return apis.NewApiError(http.StatusInternalServerError, "could not accept websocket connection", nil)
-		}
-		conn.SetReadLimit(readLimit)
 		avatar := authRecord.Get("avatar").(string)
 		participantId := authRecord.Id
 		username := authRecord.Username()
