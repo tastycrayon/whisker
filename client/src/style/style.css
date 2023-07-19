@@ -7,3 +7,7 @@
 path.catGlasses {
 	fill: #f690be;
 }
+body {
+	min-height: 100vh;
+	min-height: -webkit-fill-available;
+}

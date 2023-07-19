@@ -47,7 +47,7 @@
 	<div class="chat w-full h-full grid grid-cols-1 lg:grid-cols-[30%_1fr] relative">
 		<!-- drawer icon -->
 		<div class="absolute top-0 left-0 p-2 lg:hidden">
-			<button class="btn-icon variant-outline-surface" on:click={handleDrawer}>
+			<button class="btn-icon variant-ghost-primary" on:click={handleDrawer}>
 				<Icon name="category" width="16px" height="16px" />
 			</button>
 		</div>

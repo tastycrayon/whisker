@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Avatar, ProgressRadial } from '@skeletonlabs/skeleton';
+	import { Avatar, ProgressRadial, drawerStore } from '@skeletonlabs/skeleton';
 	import Typewriter from './typewriter.svelte';
 	import { currentUser } from '$lib/pocketbase';
 	import { DEFAULT_IMAGE, PROFILE_PATH } from '$lib/constant';
@@ -8,6 +8,8 @@
 	import DarkMode from './dark-mode.svelte';
 	import { loading } from '$lib/socketStore';
 	import Icon from './icon.svelte';
+
+	export let closeBtn = false;
 </script>
 
 <footer class="border-t border-surface-500/30 space-y-2">
@@ -45,6 +47,14 @@
 				<span class="whitespace-nowrap overflow-hidden text-ellipsis">{$currentUser.username}</span>
 			</a>
 			<DarkMode />
+			{#if closeBtn}
+				<button
+					class="btn-icon btn-icon-sm variant-outline rounded-full"
+					on:click={drawerStore.close}
+				>
+					<Icon name="times" width="16px" height="16px" />
+				</button>
+			{/if}
 		</div>
 	{/if}
 </footer>

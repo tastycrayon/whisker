@@ -105,7 +105,7 @@
 <div class="flex flex-col flex-nowrap justify-end max-h-screen">
 	<!-- <div class="grid grid-row-[1fr_auto]"> -->
 	<!-- Conversation -->
-	<section bind:this={elemChat} class="p-4 overflow-y-auto space-y-4">
+	<section bind:this={elemChat} class="p-2 overflow-y-auto overflow-x-hidden space-y-3">
 		{#each messageList as m, i}
 			<Message
 				avatar={generateAvatar(CollectionName.User, m.sender.id, m.sender.avatar)}

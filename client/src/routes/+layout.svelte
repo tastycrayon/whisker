@@ -44,7 +44,7 @@
 <Toast zIndex="z-[999]" />
 <Drawer zIndex="z-[50]">
 	{#if $drawerStore.id === 'phone-sidebar'}
-		<Footer />
+		<Footer closeBtn={true} />
 		<hr />
 		<Sidebar />
 	{/if}

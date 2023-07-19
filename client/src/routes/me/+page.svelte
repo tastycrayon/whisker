@@ -1,9 +1,16 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import Icon from '$components/icon.svelte';
-	import { PROFILE_EDIT_PATH } from '$lib/constant';
-	import { currentUser } from '$lib/pocketbase';
+	import { HOME_PATH, PROFILE_EDIT_PATH } from '$lib/constant';
+	import { SignOut, currentUser } from '$lib/pocketbase';
 	import { CollectionName } from '$lib/types';
 	import { generateAvatar, timeSince } from '$lib/util';
+
+	const handleSignOut = () => {
+		SignOut(() => {
+			goto(HOME_PATH, { invalidateAll: true });
+		});
+	};
 </script>
 
 <div class="container mx-auto">
@@ -21,7 +28,10 @@
 						<small>Registered: {timeSince($currentUser?.created || new Date().toString())}</small>
 						<br />
 						<br />
-						<a class="btn btn-sm variant-filled" href={PROFILE_EDIT_PATH}> Edit </a>
+						<a class="btn btn-sm variant-filled" href={PROFILE_EDIT_PATH}>Edit Profile</a>
+						<button type="button" class="btn btn-sm variant-filled-warning" on:click={handleSignOut}
+							>Sign Out</button
+						>
 					</header>
 				</div>
 			</div>

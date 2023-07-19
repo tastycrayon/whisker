@@ -11,75 +11,6 @@ export const reader = writable<IRecieveMessage | null>(null);
 export const writer = writable<SendEvent | null>(null);
 export const loading = writable<boolean>(false);
 
-// let socket: WebSocket | undefined = undefined
-// let unsubscribeWriter: Unsubscriber | undefined;
-// let openPromise: Promise<WebSocket | undefined>
-
-// export const WebSocketStore = () => {
-//     const reopenTimeouts = [2000, 5000, 10000, 30000, 60000];
-//     let retryCount = 0, timer: number | undefined;
-//     function retryTimeout() {
-//         retryCount++;
-//         if (retryCount > reopenTimeouts.length - 1) retryCount--;
-//         return reopenTimeouts[retryCount];
-//     }
-//     function close() {
-//         if (timer) clearTimeout(timer);
-//         if (!socket) return
-//         console.log("about to close")
-//         socket.close();
-//         socket = undefined;
-//         if (unsubscribeWriter) unsubscribeWriter()
-//     }
-//     function reopen() {
-//         close();
-//         timer = setTimeout(() => open(), retryTimeout());
-//     }
-//     let cRoom: string = ""
-//     currentRoom.subscribe(room => cRoom = room)
-
-//     const open = (): Promise<WebSocket | undefined> => {
-//         return new Promise((res, rej) => {
-//             if (socket) return res(socket);
-//             socket = new WebSocket(`${PUBLIC_WEBSOCKET_URL}${ROOM_PATH}/${cRoom}`); // open websocket
-//             // socket open
-//             if (unsubscribeWriter) unsubscribeWriter() // if already subscibed, unsubscribe
-//             // writer writes to websocket (send messages)
-//             unsubscribeWriter = writer.subscribe((m: SendEvent | null) => {
-//                 if (!m || !socket || socket.readyState !== WebSocket.OPEN) return res(open())
-//                 console.log("write")
-//                 socket.send(JSON.stringify(m));
-//                 writer.set(null)
-//             });
-//             // socket open
-//             socket.onopen = () => {
-//                 retryCount = 0;
-//                 return res(socket);
-//             };
-//             socket.onerror = (err) => rej(err);
-//             socket.onclose = (err) => {
-//                 rej(err)
-//                 reopen()
-//             }
-//             socket.onmessage = (event) => {
-//                 console.log("read")
-//                 reader.set(JSON.parse(event.data) as IRecieveMessage)
-//             }
-//         });
-//     }
-
-//     async function connect(): Promise<WebSocket | undefined> {
-//         if (timer) clearTimeout(timer)
-//         timer = undefined;
-//         if (openPromise) return openPromise
-//         openPromise = open()
-//         return openPromise
-//     }
-//     return {
-//         connect, open, reopen, close, socket
-//     }
-// }
-
 const createWebSocket = (url: string): WebSocket => new WebSocket(url)
 export class WS {
     _reader: Writable<IRecieveMessage | null>
@@ -131,7 +62,7 @@ export class WS {
                 if (event.reason === "404_NOT_FOUND") goto(NOT_FOUND_PATH)
                 break;
             default:
-                const message = event.reason === "" ? "Abnormaly lost connection" : event.reason
+                const message = event.reason === "" ? "Failed to establish connection" : event.reason
                 this._notifyError(message)
                 this._reOpen()
                 break;
@@ -140,11 +71,12 @@ export class WS {
     _onMessage(event: MessageEvent<string>) { reader.set(JSON.parse(event.data) as IRecieveMessage) }
 
     _reOpen() {
+        this.setLoadingTrue()
         this.closeConnection()
         this._timer = setTimeout(this.connect.bind(this), this.retryTimeout);
     }
     _notifyError(message: string) {
-        const t: ToastSettings = { message, background: "variant-filled-error" };
+        const t: ToastSettings = { message, background: "variant-filled-surface" };
         setTimeout(() => toastStore.trigger(t), 100)
     }
     setLoadingTrue() {

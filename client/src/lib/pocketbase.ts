@@ -26,3 +26,9 @@ export const initGoogleAuth = async (callback = () => { }) => {
 		// console.log({ a: pb.authStore.isValid, b: pb.authStore.token, c: pb?.authStore?.model?.id });
 	} catch (_) { }
 };
+
+export const SignOut = (callback = () => { }) => {
+	pb.cancelAllRequests()
+	pb.authStore.clear()
+	callback()
+}

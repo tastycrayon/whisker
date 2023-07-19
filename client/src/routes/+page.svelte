@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ROOM_PATH } from '$lib/constant';
+	import { ABOUT_PATH, ROOM_PATH } from '$lib/constant';
 	import { currentUser } from '$lib/pocketbase';
 	import { modalStore, type ModalComponent, type ModalSettings } from '@skeletonlabs/skeleton';
 	import AuthProviders from '$components/auth-providers.svelte';
@@ -32,9 +32,9 @@
 	<div class="p-4 max-w-[640px] space-y-3">
 		<div class="inline-flex items-center">
 			<h1 class="h1">
-				Whisker<span
+				Whis<span
 					class="bg-gradient-to-br from-pink-500 to-violet-500 bg-clip-text text-transparent box-decoration-clone"
-					>Chat</span
+					>ker</span
 				>
 			</h1>
 			<Icon name="cat" class="text-purple-600 ml-2" width="72px" height="72px" />
@@ -45,10 +45,10 @@
 
 		<br />
 		<p>
-			Introducing "WhiskerChat," a revolutionary chat app designed exclusively for programmers who
-			are battling burnout and depression. We understand the unique challenges and pressures that
-			come with a career in programming, and we're here to support you on your journey to recovery
-			and well-being. WhiskerChat provides a safe, judgment-free space where programmers can connect
+			Introducing "Whisker," a revolutionary chat app designed exclusively for programmers who are
+			battling burnout and depression. We understand the unique challenges and pressures that come
+			with a career in programming, and we're here to support you on your journey to recovery and
+			well-being. WhiskerChat provides a safe, judgment-free space where programmers can connect
 			with like-minded individuals, share their experiences, and find solace in a supportive
 			community.
 		</p>
@@ -61,5 +61,8 @@
 				<span>Get Started</span>
 			</a>
 		{/if}
+		<a class="btn variant-ghost-tertiary m-0" href={ABOUT_PATH}>
+			<span>About Us</span>
+		</a>
 	</div>
 </div>
