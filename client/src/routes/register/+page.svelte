@@ -6,7 +6,12 @@
 	import { COOKIE_OPTIONS, LOGIN_PATH, ROOM_PATH } from '$lib/constant';
 	import { currentUser, pb } from '$lib/pocketbase';
 	import type { FormResError } from '$lib/types';
-	import { FileDropzone, ProgressRadial } from '@skeletonlabs/skeleton';
+	import {
+		FileDropzone,
+		ProgressRadial,
+		toastStore,
+		type ToastSettings
+	} from '@skeletonlabs/skeleton';
 	import type { ClientResponseError } from 'pocketbase';
 	import { onMount } from 'svelte';
 
@@ -55,7 +60,12 @@
 				passwordConfirm
 			});
 			pb.authStore.exportToCookie(COOKIE_OPTIONS);
-			goto(ROOM_PATH);
+			const t: ToastSettings = {
+				message: 'Check email for confirmation.',
+				background: 'variant-filled-surface'
+			};
+			toastStore.trigger(t);
+			setTimeout(() => goto(ROOM_PATH), 1500);
 		} catch (err) {
 			const e = (err as ClientResponseError).response.data;
 			const keys = [

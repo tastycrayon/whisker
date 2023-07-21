@@ -10,13 +10,17 @@
 	import Icon from './icon.svelte';
 
 	export let closeBtn = false;
+
+	const handleDrawyerClose = () => {
+		drawerStore.close();
+	};
 </script>
 
 <footer class="border-t border-surface-500/30 space-y-2">
 	{#if !navigator.onLine}
 		<div>
 			<aside class="w-full inline-flex gap-2 items-center justify-between px-4">
-				<small>Connection not available</small>
+				<small>Network not available</small>
 				<p><Icon name="cell-signal-slash" width="16px" height="16px" /></p>
 			</aside>
 			<hr />
@@ -25,7 +29,10 @@
 	{#if $loading}
 		<div>
 			<aside class="w-full inline-flex gap-2 items-center justify-between px-4">
-				<small>Connecting <Typewriter slogans={['.', '..', '...']} /></small>
+				<small
+					>{$loading == 'switching' ? 'Switching' : 'Connecting'}
+					<Typewriter slogans={['.', '..', '...']} /></small
+				>
 				<p><ProgressRadial width="w-3" /></p>
 			</aside>
 			<hr />
@@ -34,17 +41,23 @@
 
 	{#if $currentUser}
 		<div class="w-full inline-flex gap-2 items-center px-4 py-2">
-			<span class="w-8">
-				<a href={PROFILE_PATH}>
+			<a
+				href={PROFILE_PATH}
+				on:click={handleDrawyerClose}
+				class="flex-auto w-full inline-flex gap-2 items-center"
+			>
+				<span class="w-8">
 					<Avatar
 						src={generateAvatar(CollectionName.User, $currentUser.id, $currentUser.avatar) ||
 							DEFAULT_IMAGE}
 						width="w-8"
 					/>
-				</a>
-			</span>
-			<a href={PROFILE_PATH} class="flex-auto">
-				<span class="whitespace-nowrap overflow-hidden text-ellipsis">{$currentUser.username}</span>
+				</span>
+				<div class="">
+					<span class="whitespace-nowrap overflow-hidden text-ellipsis"
+						>{$currentUser.username}</span
+					>
+				</div>
 			</a>
 			<DarkMode />
 			{#if closeBtn}

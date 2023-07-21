@@ -18,6 +18,8 @@
 	function onRoomSelection(event: any): void {
 		inputDemo = event.detail.label;
 		goto(ROOM_PATH + '/' + event.detail.meta.slug);
+		inputDemo = '';
+		isFocused = false;
 		drawerStore.close();
 	}
 
@@ -25,6 +27,10 @@
 	onMount(() => {
 		if ($roomStore.data.length === 0) refreshRooms();
 	});
+
+	const handleDrawyerClose = () => {
+		drawerStore.close();
+	};
 </script>
 
 <!-- Header -->
@@ -43,6 +49,7 @@
 					bind:input={inputDemo}
 					options={roomOptions}
 					on:selection={onRoomSelection}
+					on:click={handleDrawyerClose}
 					class="text-sm"
 				/>
 			</div>

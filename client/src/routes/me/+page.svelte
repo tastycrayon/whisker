@@ -3,13 +3,20 @@
 	import Icon from '$components/icon.svelte';
 	import { HOME_PATH, PROFILE_EDIT_PATH } from '$lib/constant';
 	import { SignOut, currentUser } from '$lib/pocketbase';
+	import { userPreference } from '$lib/store';
 	import { CollectionName } from '$lib/types';
 	import { generateAvatar, timeSince } from '$lib/util';
+	import { SlideToggle } from '@skeletonlabs/skeleton';
 
 	const handleSignOut = () => {
 		SignOut(() => {
 			goto(HOME_PATH, { invalidateAll: true });
 		});
+	};
+
+	let welToggle = $userPreference.hideWelcomeMessage;
+	const handleToggler = () => {
+		userPreference.update((prev) => ({ ...prev, hideWelcomeMessage: welToggle }));
 	};
 </script>
 
@@ -35,6 +42,19 @@
 					</header>
 				</div>
 			</div>
+		</div>
+
+		<div class="inline-flex justify-between">
+			<div />
+			<SlideToggle
+				name="slider-large"
+				bind:checked={welToggle}
+				on:change={handleToggler}
+				active="bg-primary-500"
+				size="sm"
+			>
+				Hide miscellaneous messages
+			</SlideToggle>
 		</div>
 	</div>
 </div>

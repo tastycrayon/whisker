@@ -173,6 +173,8 @@
 			/>
 			<small class="text-error-500">{formatError(FormFieldKey.RoomDescription)}</small>
 		</label>
+		<small>Room will be deleted after 1 hour of inactivity</small>
+		<br />
 		<button class="btn btn-sm variant-ghost-primary" disabled={loading} type="submit">SUBMIT</button
 		>
 	</form>

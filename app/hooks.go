@@ -87,4 +87,37 @@ func InitHooks(pb *pocketbase.PocketBase, h *ws.Hub) {
 		return nil
 	})
 
+	// user
+
+	// after update user, mutate local copy
+	pb.OnRecordAfterUpdateRequest().Add(func(e *core.RecordUpdateEvent) error {
+		if e.Record.Collection().Name == "users" {
+			id := e.Record.GetId()
+
+			var user *ws.Participant = nil
+			for _, room := range h.Rooms {
+				room.ParticipantMu.Lock()
+				if u, ok := room.Participants[id]; ok {
+					user = u
+				}
+				room.ParticipantMu.Unlock()
+			}
+			if user == nil {
+				return nil
+			}
+			oldUsername := e.Record.OriginalCopy().GetString("username")
+			username := e.Record.GetString("username")
+
+			if username == oldUsername {
+				return nil
+			}
+
+			if _, ok := h.Rooms[user.RoomSlug]; ok {
+				m := fmt.Sprintf("%v username was changed to %v", oldUsername, username)
+				h.Broadcast <- ws.GenerateCustomMessage(user, ws.GenerateId(h), ws.Text, m)
+			}
+
+		}
+		return nil
+	})
 }

@@ -9,15 +9,16 @@ import { toastStore, type ToastSettings } from "@skeletonlabs/skeleton";
 // reader reads from websocket
 export const reader = writable<IRecieveMessage | null>(null);
 export const writer = writable<SendEvent | null>(null);
-export const loading = writable<boolean>(false);
+export type loadingType = "switching" | "loading" | null
+export const loading = writable<loadingType>(null);
 
 const createWebSocket = (url: string): WebSocket => new WebSocket(url)
 export class WS {
     _reader: Writable<IRecieveMessage | null>
     _writer: Writable<SendEvent | null>
-    _loading: Writable<boolean>
+    _loading: Writable<"switching" | "loading" | null>
     _unsubscribeWriter: Unsubscriber | undefined
-    _url: string
+    _url: string = ""
     _socket: WebSocket | undefined
     _promise: Promise<WebSocket> | undefined
     _reopenTimeouts = [2000, 5000, 10000, 30000, 60000];
@@ -48,6 +49,7 @@ export class WS {
     }
     _onError(event: Event) {
         this.setLoadingFalse()
+        if (!navigator.onLine) return
         this._notifyError("Error establishing connection")
     }
     _onSend(event: MessageEvent<string>) {
@@ -62,7 +64,8 @@ export class WS {
                 if (event.reason === "404_NOT_FOUND") goto(NOT_FOUND_PATH)
                 break;
             default:
-                const message = event.reason === "" ? "Failed to establish connection" : event.reason
+                console.log({ "first": event.code })
+                const message = event.reason === "" ? "Failed to establish websocket connection" : event.reason
                 this._notifyError(message)
                 this._reOpen()
                 break;
@@ -71,7 +74,7 @@ export class WS {
     _onMessage(event: MessageEvent<string>) { reader.set(JSON.parse(event.data) as IRecieveMessage) }
 
     _reOpen() {
-        this.setLoadingTrue()
+        this.enableLoading()
         this.closeConnection()
         this._timer = setTimeout(this.connect.bind(this), this.retryTimeout);
     }
@@ -79,11 +82,18 @@ export class WS {
         const t: ToastSettings = { message, background: "variant-filled-surface" };
         setTimeout(() => toastStore.trigger(t), 100)
     }
-    setLoadingTrue() {
-        this._loading.set(true)
+    _notifyOpening(message: string) {
+        const t: ToastSettings = { message, background: "variant-filled-warning" };
+        toastStore.trigger(t)
+    }
+    enableLoading() {
+        this._loading.set("loading")
+    }
+    enableSwitching() {
+        this._loading.set("switching")
     }
     setLoadingFalse() {
-        this._loading.set(false)
+        this._loading.set(null)
     }
     setWriter() {
         this._unsubscribeWriter = writer.subscribe((m: SendEvent | null) => {
@@ -97,10 +107,11 @@ export class WS {
         return new Promise<WebSocket>((res, rej) => {
             if (this._socket && this.isOpened) return res(this._socket)
             if (this._socket && (this.isClosing || this.isClosed)) return rej(this._socket)
-            // if (this.isOpening) return // umm.. what should I do here? await this.isOpening ?
+            // if (this.isOpening) return // TODO
 
             if (this._unsubscribeWriter) this._unsubscribeWriter()
             this._socket = createWebSocket(this._url)
+            console.log("connected")
             this._socket.onopen = this._onOpen.bind(this)
             this._socket.onclose = this._onClose.bind(this)
             this._socket.onerror = this._onError.bind(this)
@@ -110,28 +121,39 @@ export class WS {
             res(this._socket)
         })
     };
-    connect(): Promise<WebSocket | undefined> {
+    setUrl(url: string) {
+        this._url = url;
+        return this
+    }
+    connect(isSwitching = false): Promise<WebSocket | undefined> {
         if (this._promise) return this._promise
         if (this._timer) clearTimeout(this._timer)
-        this.setLoadingTrue()
+        // switch otherwise enable loading indicator
+        if (isSwitching) this.enableSwitching()
+        else this.enableLoading()
+
         this._timer = 0;
         this._promise = this.open()
         return this._promise
 
     }
-    closeConnection() {
-        console.log("about to close")
-        if (this._timer) clearTimeout(this._timer);
-        if (this._unsubscribeWriter) this._unsubscribeWriter()
-        if (!this._socket) return
-        if (this.isOpened) this._socket.close(1000, "GOING_AWAY")
-        this._socket = undefined;
-        this._promise = undefined;
+    closeConnection(): Promise<boolean> {
+        return new Promise<boolean>((res, rej) => {
+            console.log("about to close")
+            if (this._timer) clearTimeout(this._timer);
+            if (this._unsubscribeWriter) this._unsubscribeWriter()
+            if (!this._socket) return res(true)
+            if (this.isOpened) this._socket.close(1000, "GOING_AWAY")
+            this._socket = undefined;
+            this._promise = undefined;
+            res(true)
+        })
     }
-    constructor(url: string, reader: Writable<IRecieveMessage | null>, writer: Writable<SendEvent | null>, loading: Writable<boolean>) {
-        this._url = url;
+    constructor(reader: Writable<IRecieveMessage | null>, writer: Writable<SendEvent | null>, loading: Writable<loadingType>) {
         this._reader = reader
         this._writer = writer
         this._loading = loading
     }
 }
+
+export const socket = new WS(reader, writer, loading);

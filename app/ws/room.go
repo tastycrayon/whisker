@@ -13,7 +13,7 @@ import (
 	"nhooyr.io/websocket"
 )
 
-const messageCacheSize = 16
+const messageCacheSize = 256
 
 type RoomType string
 

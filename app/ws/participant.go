@@ -81,7 +81,7 @@ func (p *Participant) WriteMessage(ctx context.Context, h *Hub) error {
 	}()
 
 	for message := range p.Message {
-		err := writeTimeout(ctx, time.Second*3, p.Conn, message)
+		err := writeTimeout(ctx, time.Second*2, p.Conn, message)
 		if err != nil {
 			fmt.Println("error at writer", err)
 			return err

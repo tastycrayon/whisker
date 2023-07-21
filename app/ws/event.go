@@ -9,6 +9,7 @@ import (
 type EventType uint8
 
 const (
+	Info               EventType = 1
 	Text               EventType = 2
 	Swap               EventType = 4
 	ParticipantHistory EventType = 6 // slice

@@ -27,6 +27,7 @@ export interface IUser {
 }
 // event 
 export enum EventType {
+	Info = 1,
 	Text = 2,
 	Swap = 4,
 	ParticipantHistory = 6, // slice
@@ -61,7 +62,7 @@ interface ParticipantHistoryType {
 interface TextMessageType {
 	payload: TextMessage,
 	slug: string,
-	type: EventType.Text
+	type: EventType.Text | EventType.Info
 }
 
 export type IRecieveMessage = MessageHistoryType | ParticipantHistoryType | TextMessageType

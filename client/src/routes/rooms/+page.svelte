@@ -27,13 +27,15 @@
 
 <AppShell>
 	<svelte:fragment slot="header">
-		<AppBar>
+		<AppBar slotDefault="whitespace-nowrap overflow-hidden text-ellipsis">
 			<svelte:fragment slot="lead">
 				<a href={ROOM_PATH + '/' + $currentRoom} class="btn-icon btn-icon-sm variant-soft">
 					<Icon name="arrow-left" width="18px" height="18px" />
 				</a>
 			</svelte:fragment>
-			<a href={ROOM_PATH + '/' + $currentRoom}>Go to {currentRoomTitle}</a>
+			<a href={ROOM_PATH + '/' + $currentRoom} class="text-sm">
+				Go to {currentRoomTitle}
+			</a>
 			<svelte:fragment slot="trail">
 				<DarkMode />
 				<a class="btn-icon btn-icon-sm variant-soft" href={PROFILE_PATH} title="Profile">

@@ -46,7 +46,9 @@
 	{#if $drawerStore.id === 'phone-sidebar'}
 		<Footer closeBtn={true} />
 		<hr />
-		<Sidebar />
+		<div class="max-w-[400px]">
+			<Sidebar />
+		</div>
 	{/if}
 </Drawer>
 <AppShell>

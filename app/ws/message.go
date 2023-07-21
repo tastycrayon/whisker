@@ -39,7 +39,7 @@ func GenerateUserLeftMessage(p *Participant, id snowflake.ID) *MessageResponse {
 			Sender:  *p,
 			Created: time.Now(),
 		},
-		Type: Text,
+		Type: Info,
 		Slug: p.RoomSlug,
 	}
 }
@@ -51,7 +51,7 @@ func GenerateUserJoinedMessage(p *Participant, id snowflake.ID) *MessageResponse
 			Sender:  *p,
 			Created: time.Now(),
 		},
-		Type: Text,
+		Type: Info,
 		Slug: p.RoomSlug,
 	}
 }

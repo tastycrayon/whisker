@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { ROOM_PATH } from '$lib/constant';
-	import { CollectionName, RoomType, type IRoom } from '$lib/types';
+	import { CollectionName, type IRoom } from '$lib/types';
 	import {
 		Avatar,
 		modalStore,
 		type ModalSettings,
-		type ModalComponent
+		type ModalComponent,
+		drawerStore
 	} from '@skeletonlabs/skeleton';
 	import RoomInfo from './roomlist-tab.svelte';
 	import { generateAvatar } from '$lib/util';
@@ -28,10 +29,18 @@
 		};
 		modalStore.trigger(modal);
 	};
+
+	const handleDrawyerClose = () => {
+		drawerStore.close();
+	};
 </script>
 
 <li class="my-3">
-	<a href={`${ROOM_PATH}/${room.slug}`} class={'w-full ' + classesActive(room.slug)}>
+	<a
+		href={`${ROOM_PATH}/${room.slug}`}
+		on:click={handleDrawyerClose}
+		class={'w-full ' + classesActive(room.slug)}
+	>
 		<span class="w-8">
 			<Avatar src={cover} width="w-8" />
 		</span>

@@ -8,6 +8,8 @@ import (
 	"github.com/pocketbase/pocketbase"
 )
 
+const deleteWaitPeriod = time.Hour * 1
+
 type InactiveRoom struct {
 	room      *Room
 	timestamp time.Time
@@ -51,7 +53,6 @@ func (rr *RoomHeap) Enqueue(x InactiveRoom) {
 }
 
 func CleanupDeadRoom(h *Hub, pb *pocketbase.PocketBase) {
-	const deleteWaitPeriod = 1000 * time.Millisecond
 	ticker := time.NewTicker(deleteWaitPeriod)
 	go func() {
 		fmt.Println("Cleanup Running")

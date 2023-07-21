@@ -3,7 +3,8 @@
 		Avatar,
 		modalStore,
 		type ModalComponent,
-		type ModalSettings
+		type ModalSettings,
+		drawerStore
 	} from '@skeletonlabs/skeleton';
 	import CreateRoom from './create-room.svelte';
 	import { refreshRooms, roomStore } from '$lib/store';
@@ -36,6 +37,10 @@
 	};
 	let publicOpen = true;
 	let personalOpen = true;
+
+	const handleDrawyerClose = () => {
+		drawerStore.close();
+	};
 </script>
 
 <!-- List -->
@@ -44,7 +49,11 @@
 		<div class="w-full inline-flex justify-between items-center pb-2">
 			<div class="space-x-2 inline-flex">
 				{#if $page.url.pathname != ROOM_PATH}
-					<a class="btn-icon btn-icon-sm variant-soft" href={ROOM_PATH}>
+					<a
+						class="btn-icon btn-icon-sm variant-soft"
+						on:click={handleDrawyerClose}
+						href={ROOM_PATH}
+					>
 						<span><Icon name="arrow-left" width="16px" height="16px" /></span>
 					</a>
 				{/if}
@@ -82,7 +91,7 @@
 			{#if $roomStore.loading}
 				<div class="space-y-5 py-2">
 					{#each new Array(PUBLIC_ROOM_PLACEHOLDER_COUNT).fill(0) as _}
-						<div class="animate-pulse placeholder h-10" />
+						<div class="animate-pulse placeholder h-10 w-[360px]" />
 					{/each}
 				</div>
 			{:else if $roomStore.data}
@@ -110,9 +119,9 @@
 		<hr />
 		<ul class={`list ${personalOpen ? '' : 'hidden'}`}>
 			{#if $roomStore.loading}
-				<div class="space-y-5 py-2">
+				<div class="space-y-5 py-2 w-full">
 					{#each new Array(PERSONAL_ROOM_PLACEHOLDER_COUNT).fill(0) as _}
-						<div class="animate-pulse placeholder h-10" />
+						<div class="animate-pulse placeholder h-10 w-[360px]" />
 					{/each}
 				</div>
 			{:else if $roomStore.data}
