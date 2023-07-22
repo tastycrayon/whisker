@@ -50,7 +50,7 @@ export interface TextMessage {
 }
 
 interface MessageHistoryType {
-	payload: TextMessageType[],
+	payload: TextMessageWrap[],
 	slug: string,
 	type: EventType.MessageHistory
 }
@@ -59,13 +59,13 @@ interface ParticipantHistoryType {
 	slug: string,
 	type: EventType.ParticipantHistory
 }
-interface TextMessageType {
+interface TextMessageWrap {
 	payload: TextMessage,
 	slug: string,
 	type: EventType.Text | EventType.Info
 }
 
-export type IRecieveMessage = MessageHistoryType | ParticipantHistoryType | TextMessageType
+export type IRecieveMessage = MessageHistoryType | ParticipantHistoryType | TextMessageWrap
 
 export interface IParticipant {
 	id: string;

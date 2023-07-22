@@ -18,20 +18,23 @@
 
 	$: currentRoom.set($page.params.roomSlug || DEFAULT_ROOM);
 
-	const roomSwitcher = async () => {
-		if (!$navigating) return;
+	const user = $currentUser;
+
+	$: if ($navigating && user) {
 		const { from, to } = $navigating;
-		if (!from?.params || !to?.params || !from.route || !to.route) return false;
-		if (from.params.roomSlug == to.params.roomSlug || !(from.route.id == to.route.id)) return false;
-
-		// if not logged in dont connect
-		if (!$currentUser) return;
-		await socket.closeConnection();
-		const url = `${PUBLIC_WEBSOCKET_URL}${ROOM_PATH}/${to.params.roomSlug}`;
-		await socket.setUrl(url).connect(true);
-	};
-
-	$: if ($navigating) roomSwitcher();
+		const run = async () => {
+			if (!from?.params || !to?.params || !from.route || !to.route) return false;
+			if (from.params.roomSlug == to.params.roomSlug || !(from.route.id == to.route.id))
+				return false;
+			// clean message feed
+			socket.messageFeed = [];
+			console.log('switched');
+			await socket.closeConnection();
+			const url = `${PUBLIC_WEBSOCKET_URL}${ROOM_PATH}/${to.params.roomSlug}`;
+			await socket.setUrl(url).connect(true);
+		};
+		run();
+	}
 
 	onMount(async () => {
 		if (!$currentUser) return;

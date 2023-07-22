@@ -193,6 +193,8 @@
 				<ProgressRadial width="w-4" stroke={150} track="stroke-secondary-500/30" />
 			{/if}
 		</button>
+		<br />
+		<small>A confirmation email will be sent.</small>
 		<div class="w-full">
 			<span>Already have an account? <a href={LOGIN_PATH} class="anchor">Sign in here</a></span>
 		</div>

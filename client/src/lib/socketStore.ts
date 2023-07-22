@@ -1,7 +1,7 @@
 
 import { writable, type Unsubscriber, type Writable, } from "svelte/store";
 import { NOT_FOUND_PATH } from "./constant";
-import type { IRecieveMessage, SendEvent } from "./types";
+import type { IRecieveMessage, SendEvent, TextMessage } from "./types";
 import { goto } from "$app/navigation";
 import { toastStore, type ToastSettings } from "@skeletonlabs/skeleton";
 
@@ -24,6 +24,8 @@ export class WS {
     _reopenTimeouts = [2000, 5000, 10000, 30000, 60000];
     _retryCount: number = 0;
     _timer: number = 0;
+    messageFeed: TextMessage[] = [];
+
 
     get retryTimeout(): number {
         this._retryCount++;
@@ -52,10 +54,7 @@ export class WS {
         if (!navigator.onLine) return
         this._notifyError("Error establishing connection")
     }
-    _onSend(event: MessageEvent<string>) {
-        console.log("read")
-        reader.set(JSON.parse(event.data) as IRecieveMessage)
-    }
+
     _onClose(event: CloseEvent) {
         this.setLoadingFalse()
         switch (event.code) {
@@ -64,14 +63,16 @@ export class WS {
                 if (event.reason === "404_NOT_FOUND") goto(NOT_FOUND_PATH)
                 break;
             default:
-                console.log({ "first": event.code })
                 const message = event.reason === "" ? "Failed to establish websocket connection" : event.reason
                 this._notifyError(message)
                 this._reOpen()
                 break;
         }
     }
-    _onMessage(event: MessageEvent<string>) { reader.set(JSON.parse(event.data) as IRecieveMessage) }
+    _onMessage(event: MessageEvent<string>) {
+        console.log("read")
+        this._reader.set(JSON.parse(event.data) as IRecieveMessage)
+    }
 
     _reOpen() {
         this.enableLoading()
@@ -95,6 +96,11 @@ export class WS {
     setLoadingFalse() {
         this._loading.set(null)
     }
+    resetSubscriber() {
+        if (!this._unsubscribeWriter) return;
+        this._unsubscribeWriter()
+        this._unsubscribeWriter = undefined
+    }
     setWriter() {
         this._unsubscribeWriter = writer.subscribe((m: SendEvent | null) => {
             if (!m || !this._socket || !this.isOpened) return
@@ -109,7 +115,6 @@ export class WS {
             if (this._socket && (this.isClosing || this.isClosed)) return rej(this._socket)
             // if (this.isOpening) return // TODO
 
-            if (this._unsubscribeWriter) this._unsubscribeWriter()
             this._socket = createWebSocket(this._url)
             console.log("connected")
             this._socket.onopen = this._onOpen.bind(this)
@@ -141,7 +146,8 @@ export class WS {
         return new Promise<boolean>((res, rej) => {
             console.log("about to close")
             if (this._timer) clearTimeout(this._timer);
-            if (this._unsubscribeWriter) this._unsubscribeWriter()
+            this.resetSubscriber()
+            this.messageFeed = []
             if (!this._socket) return res(true)
             if (this.isOpened) this._socket.close(1000, "GOING_AWAY")
             this._socket = undefined;
