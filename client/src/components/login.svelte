@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
 	import { pb } from '$lib/pocketbase';
-	import { HttpStatusCode } from '$lib/statusCodes';
 	import { modalStore } from '@skeletonlabs/skeleton';
 	import Icon from './icon.svelte';
 

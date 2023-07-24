@@ -28,7 +28,7 @@
 		{#each currentRoomParticipants as p}
 			<ListBoxItem bind:group={currentParticipant} name="people" value={p}>
 				<svelte:fragment slot="lead">
-					<Avatar src={p.avatar} width="w-8" />
+					<Avatar src={p.avatar} initials={p.username.charAt(0)} width="w-8" />
 				</svelte:fragment>
 				{p.username}
 			</ListBoxItem>

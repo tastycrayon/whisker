@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Message from '$components/message.svelte';
+	import { navigating, page } from '$app/stores';
 	import { getContext, onDestroy } from 'svelte';
 	import { currentUser } from '$lib/pocketbase';
 	import { participantStore, userPreference } from '$lib/store';
@@ -7,6 +8,8 @@
 	import Icon from '$components/icon.svelte';
 	import { generateAvatar } from '$lib/util';
 	import { WS, reader, writer } from '$lib/socketStore';
+	import { PUBLIC_WEBSOCKET_URL } from '$env/static/public';
+	import { ROOM_PATH } from '$lib/constant';
 
 	const socket = getContext<WS>('socket');
 
@@ -15,7 +18,10 @@
 	let hideInfo = $userPreference.hideWelcomeMessage;
 
 	const sendMessage = () => {
-		if (!socket.isOpened) return socket._notifyOpening('Failed to send messsage, please try again');
+		if (!socket.isOpened)
+			return socket._notifyOpening(
+				'Message delivery unsuccessful. Please for the WebSocket to establish a connection.'
+			);
 		if (currentMessage === '') return;
 		const m: SendEvent = {
 			payload: currentMessage,
@@ -24,6 +30,23 @@
 		writer.set(m);
 		currentMessage = '';
 	};
+	// if not logged in dont connect
+	const user = $currentUser;
+
+	const roomSwitcher = async () => {
+		if (!$navigating || !user) return;
+		const { from, to } = $navigating;
+		if (!from?.params || !to?.params || !from.route || !to.route) return false;
+		if (from.params.roomSlug == to.params.roomSlug || !(from.route.id == to.route.id)) return false;
+
+		// clean message feed
+		socket.messageFeed = [];
+		await socket.closeConnection();
+		const url = `${PUBLIC_WEBSOCKET_URL}${ROOM_PATH}/${to.params.roomSlug}`;
+		await socket.setUrl(url).connect(true);
+	};
+	$: if ($navigating) roomSwitcher();
+
 	const unsubscribeReader = reader.subscribe((m) => {
 		if (!m) return;
 		switch (m.type) {
@@ -71,7 +94,7 @@
 	$: messageList = socket.messageFeed
 		// .filter((e) => e.roomSlug == $page.params.roomSlug)
 		.sort((a, b) => (parseInt(a.id) > parseInt(b.id) ? 1 : -1));
-	$: console.log({ messageList });
+	// $: console.log({ messageList });
 </script>
 
 <!-- Chat -->
@@ -82,8 +105,9 @@
 		{#each messageList as m, i}
 			<Message
 				avatar={generateAvatar(CollectionName.User, m.sender.id, m.sender.avatar)}
-				name={m.sender.username}
-				timestamp={m.created}
+				username={m.sender.username}
+				id={m.id}
+				created={m.created}
 				message={m.content.toString()}
 				self={m.sender.id == $currentUser?.id}
 			/>
@@ -104,7 +128,7 @@
 			disabled={currentMessage == ''}
 			on:click={sendMessage}
 		>
-			<Icon name="paper-airplane" width="16px" height="16px" />
+			<Icon name="paper-airplane" width="20px" height="20px" />
 		</button>
 	</section>
 </div>

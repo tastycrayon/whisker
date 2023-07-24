@@ -1,17 +1,10 @@
 <script lang="ts">
-	import {
-		CollectionName,
-		RoomType,
-		type IRoom,
-		type IUser,
-		type ParticipantRoom
-	} from '$lib/types';
+	import { CollectionName, type IRoom } from '$lib/types';
 	import { Avatar, Tab, TabGroup, clipboard } from '@skeletonlabs/skeleton';
 	import Icon from '../icon.svelte';
 	import RoomParticipants from './room-participants.svelte';
 	import { participantStore, refreshSingleParticipant } from '$lib/store';
 	import { ROOM_PATH } from '$lib/constant';
-	import { onMount } from 'svelte';
 	import { generateAvatar, timeSince } from '$lib/util';
 	import EditRoom from './edit-room.svelte';
 	import { currentUser } from '$lib/pocketbase';
@@ -19,12 +12,11 @@
 	export let room: IRoom;
 	let showParticipantCount = false;
 	let tabSet: number = 0;
-	// $: console.log({ participantStore: $participantStore.data });
 	$: roomOwner = $participantStore.data.find((p) => p.id == room.createdBy);
+	$: if (!roomOwner) refreshSingleParticipant(room.createdBy);
+
 	const cover = generateAvatar(CollectionName.Room, room.id, room.cover);
-	onMount(async () => {
-		if (room.createdBy !== 'Admin' && !roomOwner) await refreshSingleParticipant(room.createdBy);
-	});
+
 	$: participantCount = $participantStore.data.reduce((acc, e) => {
 		return e.roomSlug == room.slug ? acc + 1 : acc;
 	}, 0);
@@ -89,6 +81,7 @@
 	<footer class="flex justify-start items-center space-x-4">
 		<Avatar
 			width="w-8"
+			initials={roomOwner?.username.charAt(0) || ''}
 			src={roomOwner ? generateAvatar(CollectionName.User, roomOwner.id, roomOwner.avatar) : 'A'}
 			>{roomOwner
 				? generateAvatar(CollectionName.User, roomOwner.id, roomOwner.avatar)

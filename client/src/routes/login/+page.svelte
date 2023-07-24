@@ -6,11 +6,13 @@
 	import Separator from '$components/separator.svelte';
 	import GoogleBtn from '$components/google-btn.svelte';
 	import { goto } from '$app/navigation';
-	import type { FormResError } from '$lib/types';
+	import type { FormResError, IUser } from '$lib/types';
 	import type { ClientResponseError } from 'pocketbase';
 	import { ProgressRadial } from '@skeletonlabs/skeleton';
-	import { onMount } from 'svelte';
+	import Head from '$components/head.svelte';
+	import VeificationRequest from '$components/veification-request.svelte';
 
+	if ($currentUser) goto(ROOM_PATH);
 	enum FormFieldKey {
 		EmailOrUsername = 'emailOrUsername',
 		Password = 'password'
@@ -41,7 +43,12 @@
 			loading = true;
 			const { token, record } = await pb
 				.collection('users')
-				.authWithPassword(emailOrUsername, password);
+				.authWithPassword<IUser>(emailOrUsername, password);
+
+			emailVerified = record.verified;
+			if (!emailVerified)
+				return makeErrObj(FormFieldKey.EmailOrUsername, 'Email must be verified.');
+
 			pb.authStore.exportToCookie(COOKIE_OPTIONS);
 			goto(ROOM_PATH);
 		} catch (err) {
@@ -62,11 +69,10 @@
 		`input  ${error?.code && keys.includes(error.code) ? 'input-error' : ''}`;
 
 	let isPasswordVisible = false;
-
-	onMount(() => {
-		if ($currentUser?.id) goto(ROOM_PATH);
-	});
+	let emailVerified = true;
 </script>
+
+<Head title="Sign In - Whisker" />
 
 <div class="card p-4 max-w-[400px] mx-auto space-y-4 my-4">
 	<div class="inline-flex items-center">
@@ -74,7 +80,9 @@
 		<Icon name="cat" class="text-purple-600" width="48px" height="48px" />
 	</div>
 	{#if error?.code == 'unknown'}<p class="text-error-500">{error.message}</p>{/if}
-
+	{#if true}
+		<VeificationRequest />
+	{/if}
 	<form method="POST" class="space-y-2" on:submit|preventDefault={formHandler}>
 		<label class="label">
 			<small>Email address or username</small>

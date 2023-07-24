@@ -69,6 +69,4 @@ func CleanupDeadRoom(h *Hub, pb *pocketbase.PocketBase) {
 			}
 		}
 	}()
-
-	// ticker.Stop()
 }

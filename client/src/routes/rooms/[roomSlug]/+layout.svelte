@@ -14,34 +14,16 @@
 	import { hasContext, onDestroy, onMount, setContext } from 'svelte';
 
 	$: if (!$currentUser) goto(LOGIN_PATH);
+
 	if (!hasContext('socket')) setContext('socket', socket);
 
 	$: currentRoom.set($page.params.roomSlug || DEFAULT_ROOM);
-
-	const user = $currentUser;
-
-	$: if ($navigating && user) {
-		const { from, to } = $navigating;
-		const run = async () => {
-			if (!from?.params || !to?.params || !from.route || !to.route) return false;
-			if (from.params.roomSlug == to.params.roomSlug || !(from.route.id == to.route.id))
-				return false;
-			// clean message feed
-			socket.messageFeed = [];
-			console.log('switched');
-			await socket.closeConnection();
-			const url = `${PUBLIC_WEBSOCKET_URL}${ROOM_PATH}/${to.params.roomSlug}`;
-			await socket.setUrl(url).connect(true);
-		};
-		run();
-	}
 
 	onMount(async () => {
 		if (!$currentUser) return;
 		try {
 			const url = `${PUBLIC_WEBSOCKET_URL}${ROOM_PATH}/${$page.params.roomSlug}`;
 			const res = await socket.setUrl(url).connect();
-			// console.log({ res });
 		} catch (err) {
 			console.log({ err });
 		}

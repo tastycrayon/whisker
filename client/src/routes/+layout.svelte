@@ -46,7 +46,7 @@
 	{#if $drawerStore.id === 'phone-sidebar'}
 		<Footer closeBtn={true} />
 		<hr />
-		<div class="max-w-[400px]">
+		<div class="max-w-[400px] w-[400px]">
 			<Sidebar />
 		</div>
 	{/if}

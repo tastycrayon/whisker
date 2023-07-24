@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import Icon from '$components/icon.svelte';
+	import Head from '$components/head.svelte';
 	import { HOME_PATH, PROFILE_EDIT_PATH } from '$lib/constant';
 	import { SignOut, currentUser } from '$lib/pocketbase';
 	import { userPreference } from '$lib/store';
@@ -20,6 +20,8 @@
 	};
 </script>
 
+<Head title="Profile - Whisker" />
+
 <div class="container mx-auto">
 	<div class="card p-4 max-w-[400px] mx-auto space-y-4 my-4">
 		<div class="flex aspect-square justify-center items-center flex-col">
@@ -35,7 +37,7 @@
 						<small>Registered: {timeSince($currentUser?.created || new Date().toString())}</small>
 						<br />
 						<br />
-						<a class="btn btn-sm variant-filled" href={PROFILE_EDIT_PATH}>Edit Profile</a>
+						<a class="btn btn-sm variant-filled-tertiary" href={PROFILE_EDIT_PATH}>Edit Profile</a>
 						<button type="button" class="btn btn-sm variant-filled-warning" on:click={handleSignOut}
 							>Sign Out</button
 						>

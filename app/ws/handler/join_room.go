@@ -44,7 +44,7 @@ func JoinRoom(h *ws.Hub) echo.HandlerFunc {
 		h.Register <- participant
 
 		// be ready to write new messages to this user
-		go participant.WriteMessage(r.Context(), h)
+		go participant.WriteMessage(r.Context(), h) // publisher
 
 		// read messages from this user and forward the message to channel
 		participant.ReadMessage(r.Context(), h) // subscriber

@@ -1,18 +1,11 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import DarkMode from '$components/dark-mode.svelte';
 	import Head from '$components/head.svelte';
 	import Icon from '$components/icon.svelte';
 	import Rooms from '$components/room/rooms.svelte';
 	import { DEFAULT_ROOM, PROFILE_PATH, ROOM_PATH } from '$lib/constant';
-	import { currentRoom, refreshRooms, roomStore } from '$lib/store';
-	import {
-		modalStore,
-		type ModalComponent,
-		type ModalSettings,
-		AppShell,
-		AppBar
-	} from '@skeletonlabs/skeleton';
+	import { currentRoom, roomStore } from '$lib/store';
+	import { AppShell, AppBar } from '@skeletonlabs/skeleton';
 
 	let loaded = false;
 	let currentRoomTitle = '';
@@ -23,7 +16,7 @@
 	}
 </script>
 
-<Head />
+<Head title="Rooms - Whisker" />
 
 <AppShell>
 	<svelte:fragment slot="header">

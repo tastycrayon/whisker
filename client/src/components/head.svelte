@@ -9,7 +9,7 @@
 <!-- OPENGRAPH -->
 <svelte:head>
 	<title>{title}</title>
-	<meta property="og:title" content={title} />
+	<meta property="og:title" content={title || 'Whisker - Connect Heal Code'} />
 	<meta property="og:description" content={description.trim()} />
 	<meta property="og:image" content={og_image} />
 </svelte:head>

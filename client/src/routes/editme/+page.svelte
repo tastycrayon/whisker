@@ -12,6 +12,7 @@
 	import { type IUser, type FormResError, CollectionName } from '$lib/types';
 	import { goto } from '$app/navigation';
 	import { firstConfirm } from '$lib/util';
+	import Head from '$components/head.svelte';
 
 	let tabSet: number = 0;
 
@@ -164,6 +165,8 @@
 		}
 	};
 </script>
+
+<Head title="Edit Profile - Whisker" />
 
 <div class="card p-4 max-w-[400px] mx-auto my-4">
 	<h2 class="h4">Edit</h2>

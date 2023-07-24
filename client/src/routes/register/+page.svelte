@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import GoogleBtn from '$components/google-btn.svelte';
+	import Head from '$components/head.svelte';
 	import Icon from '$components/icon.svelte';
 	import Separator from '$components/separator.svelte';
 	import { COOKIE_OPTIONS, LOGIN_PATH, ROOM_PATH } from '$lib/constant';
 	import { currentUser, pb } from '$lib/pocketbase';
-	import type { FormResError } from '$lib/types';
+	import type { FormResError, IUser } from '$lib/types';
 	import {
 		FileDropzone,
 		ProgressRadial,
@@ -13,7 +14,8 @@
 		type ToastSettings
 	} from '@skeletonlabs/skeleton';
 	import type { ClientResponseError } from 'pocketbase';
-	import { onMount } from 'svelte';
+
+	if ($currentUser) goto(ROOM_PATH);
 
 	enum FormFieldKey {
 		Email = 'email',
@@ -52,14 +54,15 @@
 
 		try {
 			loading = true;
-			const { token, record } = await pb.collection('users').create({
+			const _ = await pb.collection('users').create<IUser>({
 				email,
 				username,
-				name,
 				password,
 				passwordConfirm
 			});
+			await pb.collection('users').requestVerification(email);
 			pb.authStore.exportToCookie(COOKIE_OPTIONS);
+
 			const t: ToastSettings = {
 				message: 'Check email for confirmation.',
 				background: 'variant-filled-surface'
@@ -103,11 +106,9 @@
 			return;
 		}
 	};
-
-	onMount(() => {
-		if ($currentUser?.id) goto(ROOM_PATH);
-	});
 </script>
+
+<Head title="Sign Up - Whisker" />
 
 <div class="card p-4 max-w-[400px] mx-auto space-y-4 my-4">
 	<div class="inline-flex items-center">
@@ -129,7 +130,8 @@
 		</label>
 		<!-- email address -->
 		<label class="label">
-			<small>Email Address</small>
+			<small>Email Address <span>(A confirmation will be sent)</span></small>
+
 			<input
 				class={setErrorClass([FormFieldKey.Email, 'unknown'])}
 				type="email"
@@ -193,8 +195,6 @@
 				<ProgressRadial width="w-4" stroke={150} track="stroke-secondary-500/30" />
 			{/if}
 		</button>
-		<br />
-		<small>A confirmation email will be sent.</small>
 		<div class="w-full">
 			<span>Already have an account? <a href={LOGIN_PATH} class="anchor">Sign in here</a></span>
 		</div>

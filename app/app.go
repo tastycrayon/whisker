@@ -22,11 +22,14 @@ func Run(buildDirFs, indexFileFs fs.FS) {
 
 	// hooks
 	InitHooks(pb, hub)
+
+	// routes
 	pb.OnBeforeServe().Add(func(e *core.ServeEvent) error {
 		InitRoutes(pb, e, hub, buildDirFs, indexFileFs)
 		return nil
 	})
 
+	//instantiate hub
 	go hub.Run()
 
 	if err := pb.Start(); err != nil {

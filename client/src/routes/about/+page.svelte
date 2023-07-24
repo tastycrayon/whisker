@@ -1,7 +1,10 @@
 <script lang="ts">
+	import Head from '$components/head.svelte';
 	import { HOME_PATH, LOGIN_PATH, ROOM_PATH } from '$lib/constant';
 	import { currentUser } from '$lib/pocketbase';
 </script>
+
+<Head title="About - Whisker" />
 
 <div class="container mx-auto p-8 space-y-8 flex flex-col justify-center min-h-screen">
 	<h1 class="h1 font-bold text-center">About Us</h1>

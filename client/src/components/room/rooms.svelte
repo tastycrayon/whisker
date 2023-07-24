@@ -23,7 +23,7 @@
 		// Pass a reference to your custom component
 		ref: CreateRoom,
 		// Add the component properties as key/value pairs
-		props: { background: 'bg-red-500' },
+		props: {},
 		// Provide a template literal for the default component slot
 		slot: '<p>Skeleton</p>'
 	};
@@ -50,7 +50,7 @@
 			<div class="space-x-2 inline-flex">
 				{#if $page.url.pathname != ROOM_PATH}
 					<a
-						class="btn-icon btn-icon-sm variant-soft"
+						class="btn-icon btn-icon-sm variant-soft !hidden lg:!flex"
 						on:click={handleDrawyerClose}
 						href={ROOM_PATH}
 					>
@@ -91,7 +91,7 @@
 			{#if $roomStore.loading}
 				<div class="space-y-5 py-2">
 					{#each new Array(PUBLIC_ROOM_PLACEHOLDER_COUNT).fill(0) as _}
-						<div class="animate-pulse placeholder h-10 w-[360px]" />
+						<div class="animate-pulse placeholder h-10 w-full" />
 					{/each}
 				</div>
 			{:else if $roomStore.data}
@@ -121,7 +121,7 @@
 			{#if $roomStore.loading}
 				<div class="space-y-5 py-2 w-full">
 					{#each new Array(PERSONAL_ROOM_PLACEHOLDER_COUNT).fill(0) as _}
-						<div class="animate-pulse placeholder h-10 w-[360px]" />
+						<div class="animate-pulse placeholder h-10 w-full" />
 					{/each}
 				</div>
 			{:else if $roomStore.data}

@@ -1,7 +1,9 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import DarkMode from '$components/dark-mode.svelte';
 	import Icon from '$components/icon.svelte';
-	import { ROOM_PATH, PROFILE_EDIT_PATH, PROFILE_PATH } from '$lib/constant';
+	import { ROOM_PATH, PROFILE_EDIT_PATH, PROFILE_PATH, LOGIN_PATH } from '$lib/constant';
+	import { currentUser } from '$lib/pocketbase';
 	import {
 		AppBar,
 		AppShell,
@@ -9,6 +11,8 @@
 		type ModalComponent,
 		type ModalSettings
 	} from '@skeletonlabs/skeleton';
+
+	$: if (!$currentUser) goto(LOGIN_PATH);
 </script>
 
 <AppShell>

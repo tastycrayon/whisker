@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { initGoogleAuth, pb } from '$lib/pocketbase';
-	import { Avatar, focusTrap, modalStore } from '@skeletonlabs/skeleton';
+	import { modalStore } from '@skeletonlabs/skeleton';
 	import { LOGIN_PATH } from '$lib/constant';
 	import Separator from './separator.svelte';
 	import Icon from './icon.svelte';
@@ -22,11 +21,13 @@
 		</div>
 		<!-- header content -->
 		<div class="flex flex-col items-center">
-			<Avatar initials="LOGO" rounded="rounded-full" />
+			<div class="rounded-full p-6 bg-surface-400-500-token">
+				<Icon name="cat" width="32px" height="32px" />
+			</div>
 		</div>
 	</header>
 	<div class="modal-body flex flex-col items-center">
-		<ul class="list py-4 w-80">
+		<ul class="list py-4 px-2 w-80">
 			<li><GoogleBtn /></li>
 			<li><Separator text="OR" /></li>
 			<li>

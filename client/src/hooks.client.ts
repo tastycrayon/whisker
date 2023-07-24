@@ -1,4 +1,5 @@
-import { COOKIE_OPTIONS } from '$lib/constant';
+import { goto } from '$app/navigation';
+import { COOKIE_OPTIONS, LOGIN_PATH } from '$lib/constant';
 import { currentUser, pb } from '$lib/pocketbase';
 
 try {
@@ -11,8 +12,8 @@ try {
 }
 // pb.authStore.loadFromCookie(document.cookie); // load it first
 pb.authStore.onChange((_, model) => {
+	currentUser.set(model);
 	if (pb.authStore.isValid) {
-		currentUser.set(model);
 		document.cookie = pb.authStore.exportToCookie(COOKIE_OPTIONS);
 	}
 });

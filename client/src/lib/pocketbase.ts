@@ -2,6 +2,7 @@ import { invalidateAll } from '$app/navigation';
 import { PUBLIC_POCKETBASE_URL } from '$env/static/public';
 import PocketBase from 'pocketbase';
 import { writable } from 'svelte/store';
+import { COOKIE_OPTIONS } from './constant';
 
 export const pb = new PocketBase(PUBLIC_POCKETBASE_URL,);
 pb.autoCancellation(true)
@@ -30,5 +31,7 @@ export const initGoogleAuth = async (callback = () => { }) => {
 export const SignOut = (callback = () => { }) => {
 	pb.cancelAllRequests()
 	pb.authStore.clear()
+	document.cookie = pb.authStore.exportToCookie(COOKIE_OPTIONS)
+	currentUser.set(null)
 	callback()
 }
