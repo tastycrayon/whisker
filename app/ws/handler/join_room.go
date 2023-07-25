@@ -7,8 +7,8 @@ import (
 	"github.com/labstack/echo/v5"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/models"
-	"github.com/tastycrayon/pb-svelte-chatapp/app/ws"
-	"github.com/tastycrayon/pb-svelte-chatapp/model"
+	"github.com/tastycrayon/whisker/app/ws"
+	"github.com/tastycrayon/whisker/model"
 	"nhooyr.io/websocket"
 )
 

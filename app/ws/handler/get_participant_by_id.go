@@ -6,7 +6,7 @@ import (
 	"github.com/labstack/echo/v5"
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
-	"github.com/tastycrayon/pb-svelte-chatapp/app/ws"
+	"github.com/tastycrayon/whisker/app/ws"
 )
 
 func GetParticipantById(pb *pocketbase.PocketBase) echo.HandlerFunc {

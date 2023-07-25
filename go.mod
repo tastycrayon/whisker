@@ -1,4 +1,4 @@
-module github.com/tastycrayon/pb-svelte-chatapp
+module github.com/tastycrayon/whisker
 
 // replace github.com/pocketbase/pocketbase => /home/mosi/Repo/side-project/pkg/pocketbase-master
 

@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v5"
-	"github.com/tastycrayon/pb-svelte-chatapp/app/ws"
+	"github.com/tastycrayon/whisker/app/ws"
 )
 
 func GetAvailableRooms(h *ws.Hub) echo.HandlerFunc {

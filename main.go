@@ -4,7 +4,7 @@ import (
 	"embed"
 
 	"github.com/labstack/echo/v5"
-	"github.com/tastycrayon/pb-svelte-chatapp/app"
+	"github.com/tastycrayon/whisker/app"
 )
 
 var (

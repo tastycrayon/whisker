@@ -10,8 +10,8 @@ import (
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/models"
-	"github.com/tastycrayon/pb-svelte-chatapp/app/ws"
-	"github.com/tastycrayon/pb-svelte-chatapp/app/ws/handler"
+	"github.com/tastycrayon/whisker/app/ws"
+	"github.com/tastycrayon/whisker/app/ws/handler"
 )
 
 func LoadCookieTokenToHeader(app core.App) echo.MiddlewareFunc {

@@ -8,7 +8,7 @@ import (
 
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/daos"
-	"github.com/tastycrayon/pb-svelte-chatapp/app/queue"
+	"github.com/tastycrayon/whisker/app/queue"
 	"golang.org/x/time/rate"
 	"nhooyr.io/websocket"
 )

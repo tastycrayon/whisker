@@ -7,7 +7,7 @@ import (
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
-	"github.com/tastycrayon/pb-svelte-chatapp/app/ws"
+	"github.com/tastycrayon/whisker/app/ws"
 )
 
 func InitHooks(pb *pocketbase.PocketBase, h *ws.Hub) {
