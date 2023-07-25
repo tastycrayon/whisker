@@ -47,10 +47,13 @@ export const refreshParticipants = async (slug: string) => {
 		const data = await pb.send<IParticipant[]>(`${PARTICIPANT_PATH}?roomSlug=${slug}`, { method: 'GET' });
 		if (!data) throw new Error("Failed loading participants.")
 		participantStore.update(prev => {
-			prev.loading = false, prev.error = undefined
-			if (prev.data.length === 0) return { ...prev, data };
-			if (data && data.length === 0) return prev
-			return { ...prev, data: data.concat(prev.data.filter((item) => data.findIndex(e => e.id === item.id) > 0)) };
+			// if no prev data return data
+			if (prev.data.length === 0) return { loading: false, error: undefined, data: data };
+			// if no data return prev
+			if (data && data.length === 0) return { loading: false, error: undefined, data: prev.data }
+
+			const filterExisting = prev.data.filter((item) => (data.findIndex(e => e.id === item.id)) < 0)
+			return { ...prev, data: data.concat(filterExisting) };
 		})
 		// participantStore.set({ loading: false, error: undefined, data: data })
 	} catch (err: any) {
@@ -66,6 +69,8 @@ export const refreshSingleParticipant = async (userId: string) => {
 		participantStore.update((s) => ({ ...s, loading: true }))
 		const res = await pb.send<IParticipant>(`${PARTICIPANT_PATH}/${userId}`, { method: 'GET' });
 		if (!res) throw new Error("Failed loading participants.")
+
+		console.log({ res })
 		participantStore.update((s) => {
 			const participants = [...s.data]
 			const idx = participants.findIndex(e => e.id == userId)

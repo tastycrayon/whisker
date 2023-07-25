@@ -13,7 +13,7 @@
 		await refreshParticipants(room.slug);
 		showParticipantCount = true;
 	});
-	// $: console.log({ first: $participantStore });
+	$: console.log({ first: $participantStore });
 	$: currentParticipant =
 		$participantStore.data?.find((e) => e.id == ($currentUser?.id || '')) || '';
 	$: currentRoomParticipants = $participantStore.data?.filter((p) => p.roomSlug == room.slug) || [];

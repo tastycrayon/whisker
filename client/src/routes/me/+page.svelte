@@ -34,7 +34,9 @@
 				<div class="w-full h-full flex justify-start items-end bg-gradient-to-t from-black">
 					<header class="w-full p-4">
 						<h3 class="h3 pb-2 text-white" data-toc-ignore="">{$currentUser?.username || ''}</h3>
-						<small>Registered: {timeSince($currentUser?.created || new Date().toString())}</small>
+						<small class="text-white font-bold"
+							>Registered: {timeSince($currentUser?.created || new Date().toString())}</small
+						>
 						<br />
 						<br />
 						<a class="btn btn-sm variant-filled-tertiary" href={PROFILE_EDIT_PATH}>Edit Profile</a>
