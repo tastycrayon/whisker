@@ -4,7 +4,7 @@
 	import Head from '$components/head.svelte';
 	import Icon from '$components/icon.svelte';
 	import Separator from '$components/separator.svelte';
-	import { COOKIE_OPTIONS, LOGIN_PATH, ROOM_PATH } from '$lib/constant';
+	import { COOKIE_OPTIONS, LOGIN_PATH, ROOM_PATH, TOC_PATH } from '$lib/constant';
 	import { currentUser, pb } from '$lib/pocketbase';
 	import type { FormResError, IUser } from '$lib/types';
 	import {
@@ -203,4 +203,10 @@
 	<div class="space-y-2">
 		<GoogleBtn />
 	</div>
+	<br />
+	<small
+		>By signing in, you accept to the following <a href={TOC_PATH} class="anchor"
+			>Terms and Conditions</a
+		></small
+	>
 </div>

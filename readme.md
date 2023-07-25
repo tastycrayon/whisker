@@ -4,7 +4,7 @@
 
 ## Description
 
-The Whisker Chat App is a Websocket based messaging application built using Golang and SvelteKit. It allows users to connect and exchange messages in real-time, leveraging the power of PocketBase as the backend. The app offers a simple and intuitive interface, supporting both individual and group chats for smooth and seamless communication.
+The Whisker Chat App is a Websocket based messaging application built using Golang and SvelteKit. It allows users to connect and exchange messages in real-time, leveraging the power of PocketBase as the backend. The app offers a simple and intuitive interface, supporting group chats for smooth and seamless communication.
 
 ## Features
 

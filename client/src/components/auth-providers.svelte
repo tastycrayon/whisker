@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { modalStore } from '@skeletonlabs/skeleton';
-	import { LOGIN_PATH } from '$lib/constant';
+	import { LOGIN_PATH, TOC_PATH } from '$lib/constant';
 	import Separator from './separator.svelte';
 	import Icon from './icon.svelte';
 	import GoogleBtn from './google-btn.svelte';
@@ -46,7 +46,11 @@
 	<footer class="modal-footer">
 		<div class="w-full text-center">
 			<small
-				>By signing in, you accept to the <a href="/" class="anchor">Terms and Conditions</a></small
+				>By signing in, you accept to the <a
+					href={TOC_PATH}
+					on:click={modalStore.close}
+					class="anchor">Terms and Conditions</a
+				></small
 			>
 		</div>
 	</footer>

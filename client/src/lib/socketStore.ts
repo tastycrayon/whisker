@@ -27,7 +27,7 @@ export class WS {
     messageFeed: TextMessage[] = [];
 
 
-    get retryTimeout(): number {
+    retryTimeout(): number {
         this._retryCount++;
         if (this._retryCount >= this._reopenTimeouts.length) this._retryCount--;
         return this._reopenTimeouts[this._retryCount];
@@ -77,7 +77,7 @@ export class WS {
     _reOpen() {
         this.enableLoading()
         this.closeConnection()
-        this._timer = setTimeout(this.connect.bind(this), this.retryTimeout);
+        this._timer = setTimeout(this.connect.bind(this), this.retryTimeout());
     }
     _notifyError(message: string) {
         const t: ToastSettings = { message, background: "variant-filled-surface" };
