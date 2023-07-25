@@ -23,7 +23,7 @@ type Hub struct {
 	SubscriberMessageBuffer int
 
 	// Rooms added here will be scheduled for death
-	RoomReaper *RoomHeap
+	RoomReaper *RoomHeap // is a priority queue
 }
 
 func (h *Hub) Run() {
@@ -64,7 +64,6 @@ func NewHub() *Hub {
 		panic(err)
 	}
 
-	// var pq InactiveRooms = make(InactiveRooms, 0, 128)
 	var pq RoomHeap = RoomHeap{
 		data:     make(InactiveRooms, 0, 128),
 		ReaperMu: &sync.Mutex{},

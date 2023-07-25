@@ -22,12 +22,12 @@
 	<svelte:fragment slot="header">
 		<AppBar slotDefault="whitespace-nowrap overflow-hidden text-ellipsis">
 			<svelte:fragment slot="lead">
-				<a href={ROOM_PATH + '/' + $currentRoom} class="btn-icon btn-icon-sm variant-soft">
+				<a href={ROOM_PATH + '/' + $currentRoom || ''} class="btn-icon btn-icon-sm variant-soft">
 					<Icon name="arrow-left" width="18px" height="18px" />
 				</a>
 			</svelte:fragment>
-			<a href={ROOM_PATH + '/' + $currentRoom} class="text-sm">
-				Go to {currentRoomTitle}
+			<a href={ROOM_PATH + '/' + $currentRoom || ''} class="text-sm">
+				Go to {currentRoomTitle || 'n/a'}
 			</a>
 			<svelte:fragment slot="trail">
 				<DarkMode />

@@ -2,11 +2,13 @@ package handler
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/labstack/echo/v5"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/models"
 	"github.com/tastycrayon/pb-svelte-chatapp/app/ws"
+	"github.com/tastycrayon/pb-svelte-chatapp/model"
 	"nhooyr.io/websocket"
 )
 
@@ -21,6 +23,9 @@ func JoinRoom(h *ws.Hub) echo.HandlerFunc {
 		// upgrade websocket
 		opts := &websocket.AcceptOptions{
 			OriginPatterns: []string{"127.0.0.1:5173", "127.0.0.1:8090", "127.0.0.1:8080"},
+		}
+		if os.Getenv("ENVIRONMENT") == string(model.Production) {
+			opts = nil // dont need allowed server in production
 		}
 		conn, err := websocket.Accept(w, r, opts)
 		if err != nil {

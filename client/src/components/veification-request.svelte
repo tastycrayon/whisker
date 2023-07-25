@@ -2,10 +2,11 @@
 	import { pb } from '$lib/pocketbase';
 	import { toastStore, type ToastSettings } from '@skeletonlabs/skeleton';
 	import Icon from './icon.svelte';
-	import { ClientResponseError } from 'pocketbase';
+	import type { ClientResponseError } from 'pocketbase';
+	import { goto } from '$app/navigation';
+	import { ROOM_PATH } from '$lib/constant';
 
 	let inputVisible = false;
-	let btnText = 'SendConfirmation';
 
 	let email = '';
 	let loading = false;
@@ -28,6 +29,10 @@
 			loading = false;
 		}
 	};
+
+	const handleSkip = () => {
+		goto(ROOM_PATH);
+	};
 </script>
 
 <aside class="alert variant-outline-warning">
@@ -38,6 +43,7 @@
 	<!-- Message -->
 	<div class="alert-message">
 		<small>Check inbox for confirmation email</small>
+		<br />
 		{#if inputVisible}
 			<form class="flex gap-2" method="post" on:submit|preventDefault={handleResend}>
 				<label class="label">
@@ -56,7 +62,10 @@
 			</form>
 		{:else}
 			<button class="btn btn-sm variant-outline-primary" on:click={() => (inputVisible = true)}
-				>Send another confirmation email</button
+				>Resend confirmation email</button
+			>
+			<button class="btn btn-sm variant-filled-success" on:click={handleSkip}
+				>Skip Email Verification</button
 			>
 		{/if}
 	</div>

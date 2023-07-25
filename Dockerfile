@@ -20,8 +20,11 @@ WORKDIR /pb
 # For more complex builds that include other dependencies, remove this 
 # line and rely on the go.sum lockfile.
 
-RUN cd client && npm i && PUBLIC_POCKETBASE_URL=https://whisker.fly.dev PUBLIC_WEBSOCKET_URL=wss://whisker.fly.dev/ws npm run build 
-RUN go build -tags netgo -ldflags '-s -w' -o output main.go
+RUN cd client && npm i && \
+    PUBLIC_POCKETBASE_URL=https://whisker.fly.dev \
+    PUBLIC_WEBSOCKET_URL=wss://whisker.fly.dev/ws \ 
+    npm run build 
+RUN ENVIRONMENT=production go build -tags netgo -ldflags '-s -w' -o output main.go
 
 WORKDIR /
 

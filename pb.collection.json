@@ -1,0 +1,161 @@
+[
+    {
+        "id": "_pb_users_auth_",
+        "name": "users",
+        "type": "auth",
+        "system": false,
+        "schema": [
+            {
+                "id": "users_name",
+                "name": "name",
+                "type": "text",
+                "system": false,
+                "required": false,
+                "options": {
+                    "min": 3,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "id": "users_avatar",
+                "name": "avatar",
+                "type": "file",
+                "system": false,
+                "required": false,
+                "options": {
+                    "maxSelect": 1,
+                    "maxSize": 5242880,
+                    "mimeTypes": [
+                        "image/jpeg",
+                        "image/png",
+                        "image/svg+xml",
+                        "image/gif",
+                        "image/webp"
+                    ],
+                    "thumbs": null,
+                    "protected": false
+                }
+            }
+        ],
+        "indexes": [],
+        "listRule": "id = @request.auth.id",
+        "viewRule": "id = @request.auth.id",
+        "createRule": "",
+        "updateRule": "id = @request.auth.id",
+        "deleteRule": "id = @request.auth.id",
+        "options": {
+            "allowEmailAuth": true,
+            "allowOAuth2Auth": true,
+            "allowUsernameAuth": true,
+            "exceptEmailDomains": null,
+            "manageRule": null,
+            "minPasswordLength": 8,
+            "onlyEmailDomains": null,
+            "requireEmail": true
+        }
+    },
+    {
+        "id": "qn65wt47fm67idr",
+        "name": "rooms",
+        "type": "base",
+        "system": false,
+        "schema": [
+            {
+                "id": "yun28rcq",
+                "name": "name",
+                "type": "text",
+                "system": false,
+                "required": true,
+                "options": {
+                    "min": 3,
+                    "max": 250,
+                    "pattern": "^[a-zA-Z0-9- ]+$"
+                }
+            },
+            {
+                "id": "2a4sho5z",
+                "name": "slug",
+                "type": "text",
+                "system": false,
+                "required": true,
+                "options": {
+                    "min": 3,
+                    "max": 250,
+                    "pattern": "^[a-z0-9-]+$"
+                }
+            },
+            {
+                "id": "uj7x6ifn",
+                "name": "cover",
+                "type": "file",
+                "system": false,
+                "required": false,
+                "options": {
+                    "maxSelect": 1,
+                    "maxSize": 2097152,
+                    "mimeTypes": [
+                        "image/jpeg",
+                        "image/png",
+                        "image/webp",
+                        "image/gif"
+                    ],
+                    "thumbs": [
+                        "120x120"
+                    ],
+                    "protected": false
+                }
+            },
+            {
+                "id": "yc9o0kqf",
+                "name": "createdBy",
+                "type": "relation",
+                "system": false,
+                "required": true,
+                "options": {
+                    "collectionId": "_pb_users_auth_",
+                    "cascadeDelete": true,
+                    "minSelect": null,
+                    "maxSelect": 1,
+                    "displayFields": []
+                }
+            },
+            {
+                "id": "5csvygh5",
+                "name": "description",
+                "type": "text",
+                "system": false,
+                "required": false,
+                "options": {
+                    "min": null,
+                    "max": 400,
+                    "pattern": ""
+                }
+            },
+            {
+                "id": "xle4dlzn",
+                "name": "type",
+                "type": "select",
+                "system": false,
+                "required": true,
+                "options": {
+                    "maxSelect": 1,
+                    "values": [
+                        "public",
+                        "personal"
+                    ]
+                }
+            }
+        ],
+        "indexes": [
+            "CREATE UNIQUE INDEX `idx_nK5ZpLq` ON `rooms` (`slug`)",
+            "CREATE INDEX `idx_KMebiiC` ON `rooms` (`name`)"
+        ],
+        "listRule": "@request.auth.id != \"\"",
+        "viewRule": "@request.auth.id != \"\"",
+        "createRule": "@request.auth.id != \"\" && @request.data.createdBy = @request.auth.id",
+        "updateRule": "@request.auth.id != \"\" && createdBy = @request.auth.id",
+        "deleteRule": "@request.auth.id != \"\" && createdBy = @request.auth.id",
+        "options": {}
+    }
+]

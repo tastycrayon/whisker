@@ -14,7 +14,7 @@ export const NOT_FOUND_PATH = '/404';
 
 export const DEFAULT_IMAGE = '/default.jpg'
 export const DEFAULT_OG_IMAGE = '/opengraph.png'
-export const DEFAULT_ROOM = 'career-and-burnout'
+export const DEFAULT_ROOM = import.meta.env.DEFAULT_ROOM
 
 export const PUBLIC_ROOM_PLACEHOLDER_COUNT = 4
 export const PERSONAL_ROOM_PLACEHOLDER_COUNT = 3

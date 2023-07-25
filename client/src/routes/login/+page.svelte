@@ -80,7 +80,7 @@
 		<Icon name="cat" class="text-purple-600" width="48px" height="48px" />
 	</div>
 	{#if error?.code == 'unknown'}<p class="text-error-500">{error.message}</p>{/if}
-	{#if true}
+	{#if !emailVerified}
 		<VeificationRequest />
 	{/if}
 	<form method="POST" class="space-y-2" on:submit|preventDefault={formHandler}>
