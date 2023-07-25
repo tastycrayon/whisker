@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Head from '$components/head.svelte';
-	import { HOME_PATH, LOGIN_PATH, ROOM_PATH } from '$lib/constant';
+	import { GITHUB_URL, HOME_PATH, LOGIN_PATH, ROOM_PATH } from '$lib/constant';
 	import { currentUser } from '$lib/pocketbase';
 </script>
 
@@ -31,5 +31,6 @@
 			<a class="btn variant-filled-primary" href={LOGIN_PATH}>Sign In</a>
 		{/if}
 		<a class="btn variant-filled-secondary" href={HOME_PATH}>HOME</a>
+		<a class="btn variant-filled-secondary" href={GITHUB_URL}>Github</a>
 	</section>
 </div>
